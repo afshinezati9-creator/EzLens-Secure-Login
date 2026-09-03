@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-/** Server-side validation for Product Options before WooCommerce creates a cart item. */
+/** Server-side WooCommerce integration for Product Options. */
 class EzLens_Product_Options_WooCommerce_Integration {
     private static $instance = null;
     private $manager;
@@ -15,6 +15,7 @@ class EzLens_Product_Options_WooCommerce_Integration {
     private function __construct() {
         $this->manager = EzLens_Product_Options_Template_Manager::get_instance();
         add_filter('woocommerce_add_to_cart_validation', [$this, 'validate'], 20, 5);
+        add_filter('woocommerce_add_cart_item_data', [$this, 'enrich_cart_item_data'], 30, 3);
     }
 
     public function validate($passed, $product_id, $quantity, $variation_id = 0, $variations = []) {
@@ -26,6 +27,20 @@ class EzLens_Product_Options_WooCommerce_Integration {
         $options = $this->sanitize_tree($raw, $template['fields']);
         $this->validate_fields($template['fields'], $options, '', $passed);
         return $passed;
+    }
+
+    public function enrich_cart_item_data($cart_item_data, $product_id, $variation_id) {
+        $product = wc_get_product($variation_id ?: $product_id);
+        $template_product_id = ($product && $product->is_type('variation')) ? $product->get_parent_id() : absint($product_id);
+        $template = $this->manager->get_template_for_product($template_product_id);
+        if (!$template || !is_array($template['fields'] ?? null)) return $cart_item_data;
+        $raw = isset($_POST['ezlens_options']) && is_array($_POST['ezlens_options']) ? wp_unslash($_POST['ezlens_options']) : [];
+        $options = $this->sanitize_tree($raw, $template['fields']);
+        if (!$options) return $cart_item_data;
+        $cart_item_data['ezlens_options'] = $options;
+        $cart_item_data['ezlens_product_id'] = $template_product_id;
+        $cart_item_data['ezlens_options_key'] = md5(wp_json_encode($options));
+        return $cart_item_data;
     }
 
     private function sanitize_tree($raw, $fields, $prefix = '') {
@@ -64,8 +79,7 @@ class EzLens_Product_Options_WooCommerce_Integration {
             $full = $prefix !== '' ? $prefix . '_' . $key : (string)$key;
             $conditions = $field['conditions'] ?? $field['conditional_logic'] ?? [];
             if (!$this->conditions_match($conditions, $options)) continue;
-            $value = $options[$full] ?? '';
-            if (!empty($field['required']) && $this->empty_value($value)) {
+            if (!empty($field['required']) && $this->empty_value($options[$full] ?? '')) {
                 wc_add_notice(sprintf('لطفاً فیلد «%s» را تکمیل کنید.', sanitize_text_field($field['label'] ?? $full)), 'error');
                 $passed = false;
             }
