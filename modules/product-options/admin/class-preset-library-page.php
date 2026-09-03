@@ -85,7 +85,6 @@ final class EzLens_Product_Options_Preset_Library_Page {
                                 <?php wp_nonce_field('ezlens_create_from_preset_' . $preset['slug']); ?>
                                 <button type="submit" class="button button-primary">ساخت قالب</button>
                             </form>
-                            <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=ezlens-product-options-presets&preset=' . rawurlencode($preset['slug']))); ?>">جزئیات</a>
                         </div>
                     </article>
                 <?php endforeach; ?>
