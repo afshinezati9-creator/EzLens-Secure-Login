@@ -1,7 +1,10 @@
 <?php
-if (!defined('ABSPATH')) exit;
 
 namespace EzLens\ProductOptions\Services;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 final class ConditionEvaluator {
     private const OPERATORS = [
