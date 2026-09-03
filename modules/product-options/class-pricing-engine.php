@@ -1,6 +1,8 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+use EzLens\ProductOptions\Services\ConditionEvaluator;
+
 /**
  * Server-side pricing engine for Product Options.
  * The browser price is display-only; this class is the authority for cart totals.
@@ -8,12 +10,7 @@ if (!defined('ABSPATH')) exit;
 class EzLens_Product_Options_Pricing_Engine {
     private static $instance = null;
     private $manager;
-
-    private const ALLOWED_CONDITION_OPERATORS = [
-        'equals','not_equals','contains','not_contains',
-        'greater_than','less_than','greater_or_equal','less_or_equal',
-        'empty','not_empty'
-    ];
+    private $conditions;
 
     public static function get_instance() {
         if (null === self::$instance) self::$instance = new self();
@@ -22,6 +19,7 @@ class EzLens_Product_Options_Pricing_Engine {
 
     private function __construct() {
         $this->manager = EzLens_Product_Options_Template_Manager::get_instance();
+        $this->conditions = new ConditionEvaluator();
         add_filter('woocommerce_add_cart_item_data', [$this, 'capture_base_price'], 20, 3);
         add_action('woocommerce_before_calculate_totals', [$this, 'apply_cart_prices'], 20);
     }
@@ -76,7 +74,8 @@ class EzLens_Product_Options_Pricing_Engine {
             if (!is_array($field) || strpos((string) $key, '_code_') === 0) continue;
 
             $field_key = $prefix !== '' ? $prefix . '_' . $key : (string) $key;
-            if (!$this->conditions_match($field['conditions'] ?? $field['conditional_logic'] ?? [], $options)) continue;
+            $conditions = $field['conditions'] ?? $field['conditional_logic'] ?? [];
+            if (!$this->conditions->matches($conditions, $options)) continue;
 
             $value = $options[$field_key] ?? null;
             if ($this->is_empty_value($value)) continue;
@@ -93,48 +92,6 @@ class EzLens_Product_Options_Pricing_Engine {
             }
         }
         return $this->format_price($total);
-    }
-
-    private function conditions_match($conditions, $options) {
-        if (empty($conditions) || !is_array($conditions)) return true;
-        $rules = isset($conditions['rules']) && is_array($conditions['rules']) ? $conditions['rules'] : $conditions;
-        if (empty($rules)) return true;
-
-        $logic = isset($conditions['logic']) && $conditions['logic'] === 'any' ? 'any' : 'all';
-        $results = [];
-        foreach ($rules as $rule) {
-            if (!is_array($rule)) continue;
-            $field = sanitize_key($rule['field'] ?? $rule['field_key'] ?? '');
-            $operator = sanitize_key($rule['operator'] ?? 'equals');
-            if (!$field || !in_array($operator, self::ALLOWED_CONDITION_OPERATORS, true)) continue;
-            $results[] = $this->compare_condition_values($options[$field] ?? '', $rule['value'] ?? '', $operator);
-        }
-        if (empty($results)) return true;
-        return $logic === 'any' ? in_array(true, $results, true) : !in_array(false, $results, true);
-    }
-
-    private function compare_condition_values($actual, $expected, $operator) {
-        if (is_array($actual)) {
-            $actual = array_map('strval', $actual);
-            if ($operator === 'contains' || $operator === 'equals') return in_array((string) $expected, $actual, true);
-            if ($operator === 'not_contains') return !in_array((string) $expected, $actual, true);
-            $actual = implode(',', $actual);
-        }
-        $actual = (string) $actual;
-        $expected = is_array($expected) ? implode(',', $expected) : (string) $expected;
-
-        switch ($operator) {
-            case 'not_equals': return $actual !== $expected;
-            case 'contains': return strpos($actual, $expected) !== false;
-            case 'not_contains': return strpos($actual, $expected) === false;
-            case 'greater_than': return is_numeric($actual) && is_numeric($expected) && (float) $actual > (float) $expected;
-            case 'less_than': return is_numeric($actual) && is_numeric($expected) && (float) $actual < (float) $expected;
-            case 'greater_or_equal': return is_numeric($actual) && is_numeric($expected) && (float) $actual >= (float) $expected;
-            case 'less_or_equal': return is_numeric($actual) && is_numeric($expected) && (float) $actual <= (float) $expected;
-            case 'empty': return $actual === '';
-            case 'not_empty': return $actual !== '';
-            case 'equals': default: return $actual === $expected;
-        }
     }
 
     private function calculate_option_price($options, $value, $type) {
