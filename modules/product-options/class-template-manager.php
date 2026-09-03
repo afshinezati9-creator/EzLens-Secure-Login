@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) exit;
 use EzLens\ProductOptions\Repositories\TemplateRepository;
 use EzLens\ProductOptions\Services\TemplateService;
 use EzLens\ProductOptions\Services\FieldSchemaValidator;
+use EzLens\ProductOptions\Services\PresetLibrary;
 
 /**
  * Backward-compatible facade for the Product Options template API.
@@ -12,6 +13,7 @@ use EzLens\ProductOptions\Services\FieldSchemaValidator;
 class EzLens_Product_Options_Template_Manager {
     private static $instance = null;
     private $service;
+    private $presets;
 
     public const SCHEMA_VERSION = TemplateService::SCHEMA_VERSION;
 
@@ -27,6 +29,7 @@ class EzLens_Product_Options_Template_Manager {
             new TemplateRepository(),
             new FieldSchemaValidator()
         );
+        $this->presets = new PresetLibrary();
     }
 
     public function build_schema($fields = [], $settings = [], $layout = []) {
@@ -85,9 +88,35 @@ class EzLens_Product_Options_Template_Manager {
         return $this->service->attach_to_product($product_id, $template_id);
     }
 
-    /**
-     * Expose the service for new integrations without breaking legacy callers.
-     */
+    public function get_presets() {
+        return $this->presets->all();
+    }
+
+    public function get_preset($slug) {
+        return $this->presets->get($slug);
+    }
+
+    /** Create a normal editable template from a built-in preset. */
+    public function create_from_preset($slug, $title = '') {
+        $preset = $this->get_preset($slug);
+        if (!$preset) {
+            return ['success' => false, 'message' => 'قالب آماده موردنظر یافت نشد.'];
+        }
+
+        $title = sanitize_text_field($title);
+        if ($title === '') $title = $preset['title'];
+
+        return $this->service->create([
+            'title' => $title,
+            'description' => $preset['description'],
+            'fields' => $preset['fields'],
+            'settings' => $preset['settings'],
+            'layout' => $preset['layout'],
+            'status' => 'inactive',
+        ]);
+    }
+
+    /** Expose the service for new integrations without breaking legacy callers. */
     public function get_service() {
         return $this->service;
     }
