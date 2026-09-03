@@ -1,7 +1,10 @@
 <?php
-if (!defined('ABSPATH')) exit;
 
 namespace EzLens\ProductOptions\Services;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Validates and normalizes Product Options field schemas.
