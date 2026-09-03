@@ -1,7 +1,10 @@
 <?php
-if (!defined('ABSPATH')) exit;
 
 namespace EzLens\ProductOptions\Repositories;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Persistence boundary for Product Option templates.
@@ -86,6 +89,17 @@ final class TemplateRepository {
         $limit = min(100, max(1, absint($args['limit'] ?? 20)));
         $offset = max(0, absint($args['offset'] ?? 0));
         $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $allowed_orderby = ['id', 'title', 'status', 'created_at', 'updated_at'];
+        $orderby = sanitize_key($orderby);
+        if (!in_array($orderby, $allowed_orderby, true)) {
+            $orderby = 'created_at';
+        }
+
+        $order = strtoupper(sanitize_key($order));
+        if (!in_array($order, ['ASC', 'DESC'], true)) {
+            $order = 'DESC';
+        }
 
         $sql = "SELECT * FROM {$this->table_name} {$where_sql} ORDER BY {$orderby} {$order} " .
             $wpdb->prepare('LIMIT %d OFFSET %d', $limit, $offset);
