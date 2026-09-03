@@ -1,11 +1,19 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+use EzLens\ProductOptions\Repositories\TemplateRepository;
+use EzLens\ProductOptions\Services\TemplateService;
+use EzLens\ProductOptions\Services\FieldSchemaValidator;
+
+/**
+ * Backward-compatible facade for the Product Options template API.
+ * New code should depend on TemplateService directly.
+ */
 class EzLens_Product_Options_Template_Manager {
     private static $instance = null;
-    private $table_name;
+    private $service;
 
-    public const SCHEMA_VERSION = 1;
+    public const SCHEMA_VERSION = TemplateService::SCHEMA_VERSION;
 
     public static function get_instance() {
         if (null === self::$instance) {
@@ -15,393 +23,73 @@ class EzLens_Product_Options_Template_Manager {
     }
 
     private function __construct() {
-        global $wpdb;
-        $this->table_name = $wpdb->prefix . 'ezlens_option_templates';
+        $this->service = new TemplateService(
+            new TemplateRepository(),
+            new FieldSchemaValidator()
+        );
     }
 
-    /**
-     * ایجاد ساختار استاندارد نسخه‌دار برای قالب.
-     * قالب‌های قدیمی نیز بدون شکستن سازگاری به همین ساختار نرمال می‌شوند.
-     */
     public function build_schema($fields = [], $settings = [], $layout = []) {
-        if (!is_array($fields)) {
-            $fields = [];
-        }
-
-        return [
-            'version' => self::SCHEMA_VERSION,
-            'settings' => is_array($settings) ? $settings : [],
-            'layout' => is_array($layout) ? $layout : [],
-            'fields' => $fields,
-        ];
+        return $this->service->build_schema($fields, $settings, $layout);
     }
 
-    /**
-     * تبدیل داده ذخیره‌شده قدیمی یا جدید به Schema استاندارد.
-     */
     public function normalize_schema($stored_fields) {
-        if (!is_array($stored_fields)) {
-            return $this->build_schema();
-        }
-
-        // Schema جدید: version + fields
-        if (isset($stored_fields['version']) && isset($stored_fields['fields'])) {
-            $version = absint($stored_fields['version']);
-            if ($version === self::SCHEMA_VERSION && is_array($stored_fields['fields'])) {
-                return $this->build_schema(
-                    $stored_fields['fields'],
-                    isset($stored_fields['settings']) ? $stored_fields['settings'] : [],
-                    isset($stored_fields['layout']) ? $stored_fields['layout'] : []
-                );
-            }
-        }
-
-        // Legacy: خود آرایه فیلدها بوده است.
-        return $this->build_schema($stored_fields);
+        return $this->service->normalize_schema($stored_fields);
     }
 
-    /**
-     * ایجاد قالب جدید
-     */
     public function create($data) {
-        global $wpdb;
-
-        $title = sanitize_text_field($data['title'] ?? '');
-        $description = sanitize_textarea_field($data['description'] ?? '');
-        $schema = $this->build_schema(
-            $data['fields'] ?? [],
-            $data['settings'] ?? [],
-            $data['layout'] ?? []
-        );
-        $fields = wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $status = sanitize_key($data['status'] ?? 'active');
-        $status = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
-        $created_by = get_current_user_id();
-
-        if (empty($title)) {
-            return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
-        }
-
-        if (false === $fields) {
-            return ['success' => false, 'message' => 'خطا در ساختار داده‌های قالب.'];
-        }
-
-        $result = $wpdb->insert(
-            $this->table_name,
-            [
-                'title' => $title,
-                'description' => $description,
-                'fields' => $fields,
-                'status' => $status,
-                'created_by' => $created_by,
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql'),
-            ],
-            ['%s', '%s', '%s', '%s', '%d', '%s', '%s']
-        );
-
-        if ($result === false) {
-            return ['success' => false, 'message' => 'خطا در ذخیره قالب: ' . $wpdb->last_error];
-        }
-
-        return ['success' => true, 'id' => $wpdb->insert_id, 'message' => 'قالب با موفقیت ایجاد شد.'];
+        return $this->service->create($data);
     }
 
-    /**
-     * به‌روزرسانی قالب
-     */
     public function update($id, $data) {
-        global $wpdb;
-
-        $id = absint($id);
-        if ($id <= 0) {
-            return ['success' => false, 'message' => 'شناسه قالب نامعتبر است.'];
-        }
-
-        $update_data = [];
-        $update_format = [];
-
-        if (isset($data['title'])) {
-            $title = sanitize_text_field($data['title']);
-            if ($title === '') {
-                return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
-            }
-            $update_data['title'] = $title;
-            $update_format[] = '%s';
-        }
-        if (isset($data['description'])) {
-            $update_data['description'] = sanitize_textarea_field($data['description']);
-            $update_format[] = '%s';
-        }
-        if (isset($data['fields'])) {
-            $schema = $this->build_schema(
-                $data['fields'],
-                $data['settings'] ?? [],
-                $data['layout'] ?? []
-            );
-            $encoded_schema = wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            if (false === $encoded_schema) {
-                return ['success' => false, 'message' => 'خطا در ساختار داده‌های قالب.'];
-            }
-            $update_data['fields'] = $encoded_schema;
-            $update_format[] = '%s';
-        }
-        if (isset($data['status'])) {
-            $status = sanitize_key($data['status']);
-            if (!in_array($status, ['active', 'inactive'], true)) {
-                return ['success' => false, 'message' => 'وضعیت قالب نامعتبر است.'];
-            }
-            $update_data['status'] = $status;
-            $update_format[] = '%s';
-        }
-
-        if (empty($update_data)) {
-            return ['success' => false, 'message' => 'هیچ داده‌ای برای به‌روزرسانی وجود ندارد.'];
-        }
-
-        $update_data['updated_at'] = current_time('mysql');
-        $update_format[] = '%s';
-
-        $result = $wpdb->update(
-            $this->table_name,
-            $update_data,
-            ['id' => $id],
-            $update_format,
-            ['%d']
-        );
-
-        if ($result === false) {
-            return ['success' => false, 'message' => 'خطا در به‌روزرسانی قالب: ' . $wpdb->last_error];
-        }
-
-        wp_cache_delete('ezlens_template_' . $id, 'ezlens');
-
-        return ['success' => true, 'message' => 'قالب با موفقیت به‌روزرسانی شد.'];
+        return $this->service->update($id, $data);
     }
 
-    /**
-     * دریافت یک قالب با شناسه.
-     * برای سازگاری، fields همچنان همان آرایه فیلدهای قبلی است و schema نیز در دسترس است.
-     */
     public function get($id) {
-        global $wpdb;
-
-        $id = absint($id);
-        if ($id <= 0) {
-            return null;
-        }
-
-        $cache_key = 'ezlens_template_' . $id;
-        $template = wp_cache_get($cache_key, 'ezlens');
-
-        if ($template !== false) {
-            return $template;
-        }
-
-        $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$this->table_name} WHERE id = %d", $id),
-            ARRAY_A
-        );
-
-        if (!$row) {
-            return null;
-        }
-
-        $decoded = json_decode($row['fields'], true);
-        $schema = $this->normalize_schema($decoded);
-
-        $row['schema'] = $schema;
-        $row['schema_version'] = self::SCHEMA_VERSION;
-        $row['fields'] = $schema['fields'];
-
-        wp_cache_set($cache_key, $row, 'ezlens', 300);
-        return $row;
+        return $this->service->get($id);
     }
 
-    /**
-     * دریافت فقط Schema استاندارد یک قالب.
-     */
     public function get_schema($id) {
-        $template = $this->get($id);
-        return $template ? $template['schema'] : null;
+        return $this->service->get_schema($id);
     }
 
     public function get_templates($status = 'all', $search = '', $limit = 20, $offset = 0) {
-        $args = [
-            'status' => $status,
-            'search' => $search,
-            'limit' => $limit,
-            'offset' => $offset,
-        ];
-        $result = $this->get_list($args);
-        return $result['items'];
+        return $this->service->get_templates($status, $search, $limit, $offset);
     }
 
     public function count_templates($status = 'all', $search = '') {
-        global $wpdb;
-
-        $where = [];
-
-        if ($status !== 'all') {
-            $status = sanitize_key($status);
-            if (in_array($status, ['active', 'inactive'], true)) {
-                $where[] = $wpdb->prepare("status = %s", $status);
-            }
-        }
-
-        if (!empty($search)) {
-            $search_like = '%' . $wpdb->esc_like(sanitize_text_field($search)) . '%';
-            $where[] = $wpdb->prepare("(title LIKE %s OR description LIKE %s)", $search_like, $search_like);
-        }
-
-        $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $sql = "SELECT COUNT(*) FROM {$this->table_name} {$where_sql}";
-
-        return (int) $wpdb->get_var($sql);
+        return $this->service->count_templates($status, $search);
     }
 
     public function get_list($args = []) {
-        global $wpdb;
-
-        $defaults = [
-            'status' => 'all',
-            'search' => '',
-            'limit' => 20,
-            'offset' => 0,
-            'orderby' => 'created_at',
-            'order' => 'DESC',
-        ];
-
-        $args = wp_parse_args($args, $defaults);
-        $where = [];
-
-        $status = sanitize_key($args['status']);
-        if ($status !== 'all') {
-            if (!in_array($status, ['active', 'inactive'], true)) {
-                $status = 'all';
-            } else {
-                $where[] = $wpdb->prepare("status = %s", $status);
-            }
-        }
-
-        $search = sanitize_text_field($args['search']);
-        if ($search !== '') {
-            $search_like = '%' . $wpdb->esc_like($search) . '%';
-            $where[] = $wpdb->prepare("(title LIKE %s OR description LIKE %s)", $search_like, $search_like);
-        }
-
-        $allowed_orderby = [
-            'id' => 'id',
-            'title' => 'title',
-            'status' => 'status',
-            'created_at' => 'created_at',
-            'updated_at' => 'updated_at',
-        ];
-        $requested_orderby = sanitize_key($args['orderby']);
-        $orderby = $allowed_orderby[$requested_orderby] ?? 'created_at';
-
-        $order = strtoupper(sanitize_key($args['order']));
-        if (!in_array($order, ['ASC', 'DESC'], true)) {
-            $order = 'DESC';
-        }
-
-        $limit = min(100, max(1, absint($args['limit'])));
-        $offset = max(0, absint($args['offset']));
-
-        $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $order_sql = "ORDER BY {$orderby} {$order}";
-        $limit_sql = $wpdb->prepare("LIMIT %d OFFSET %d", $limit, $offset);
-
-        $sql = "SELECT * FROM {$this->table_name} {$where_sql} {$order_sql} {$limit_sql}";
-        $results = $wpdb->get_results($sql, ARRAY_A);
-
-        foreach ($results as &$row) {
-            $decoded = json_decode($row['fields'], true);
-            $schema = $this->normalize_schema($decoded);
-            $row['schema'] = $schema;
-            $row['schema_version'] = self::SCHEMA_VERSION;
-            $row['fields'] = $schema['fields'];
-        }
-        unset($row);
-
-        $count_sql = "SELECT COUNT(*) FROM {$this->table_name} {$where_sql}";
-        $total = (int) $wpdb->get_var($count_sql);
-
-        return [
-            'items' => $results,
-            'total' => $total,
-        ];
+        return $this->service->get_list($args);
     }
 
     public function get_connected_products_count($template_id) {
-        global $wpdb;
-        $count = $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = '_ezlens_option_template_id' AND meta_value = %d",
-            absint($template_id)
-        ));
-        return (int) $count;
+        return $this->service->get_connected_products_count($template_id);
     }
 
     public function delete($id) {
-        global $wpdb;
-        $id = absint($id);
-
-        $connected = $this->get_connected_products_count($id);
-        if ($connected > 0) {
-            return ['success' => false, 'message' => 'این قالب به ' . $connected . ' محصول متصل است. ابتدا اتصال را قطع کنید.'];
-        }
-
-        $result = $wpdb->delete($this->table_name, ['id' => $id], ['%d']);
-        if ($result === false) {
-            return ['success' => false, 'message' => 'خطا در حذف قالب: ' . $wpdb->last_error];
-        }
-
-        wp_cache_delete('ezlens_template_' . $id, 'ezlens');
-        return ['success' => true, 'message' => 'قالب با موفقیت حذف شد.'];
+        return $this->service->delete($id);
     }
 
     public function duplicate($id) {
-        $template = $this->get($id);
-        if (!$template) {
-            return ['success' => false, 'message' => 'قالب یافت نشد.'];
-        }
-
-        $new_data = [
-            'title' => $template['title'] . ' (کپی)',
-            'description' => $template['description'],
-            'fields' => $template['fields'],
-            'settings' => $template['schema']['settings'],
-            'layout' => $template['schema']['layout'],
-            'status' => 'inactive',
-        ];
-
-        return $this->create($new_data);
+        return $this->service->duplicate($id);
     }
 
     public function get_template_for_product($product_id) {
-        $template_id = get_post_meta(absint($product_id), '_ezlens_option_template_id', true);
-        if (empty($template_id)) {
-            return null;
-        }
-        return $this->get((int) $template_id);
+        return $this->service->get_template_for_product($product_id);
     }
 
     public function attach_to_product($product_id, $template_id) {
-        $product_id = absint($product_id);
-        $template_id = absint($template_id);
+        return $this->service->attach_to_product($product_id, $template_id);
+    }
 
-        if ($template_id <= 0) {
-            delete_post_meta($product_id, '_ezlens_option_template_id');
-            return ['success' => true, 'message' => 'قالب از محصول جدا شد.'];
-        }
-
-        $template = $this->get($template_id);
-        if (!$template) {
-            return ['success' => false, 'message' => 'قالب یافت نشد.'];
-        }
-
-        update_post_meta($product_id, '_ezlens_option_template_id', $template_id);
-        return ['success' => true, 'message' => 'قالب به محصول متصل شد.'];
+    /**
+     * Expose the service for new integrations without breaking legacy callers.
+     */
+    public function get_service() {
+        return $this->service;
     }
 }
 
