@@ -1,10 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-/**
- * WooCommerce integration guard for Product Options.
- * Keeps validation authoritative on the server before an item reaches the cart.
- */
+/** Server-side validation for Product Options before WooCommerce creates a cart item. */
 class EzLens_Product_Options_WooCommerce_Integration {
     private static $instance = null;
     private $manager;
@@ -25,7 +22,6 @@ class EzLens_Product_Options_WooCommerce_Integration {
         $template_product_id = ($product && $product->is_type('variation')) ? $product->get_parent_id() : absint($product_id);
         $template = $this->manager->get_template_for_product($template_product_id);
         if (!$template || !is_array($template['fields'] ?? null)) return $passed;
-
         $raw = isset($_POST['ezlens_options']) && is_array($_POST['ezlens_options']) ? wp_unslash($_POST['ezlens_options']) : [];
         $options = $this->sanitize_tree($raw, $template['fields']);
         $this->validate_fields($template['fields'], $options, '', $passed);
@@ -41,9 +37,7 @@ class EzLens_Product_Options_WooCommerce_Integration {
                 $value = $this->sanitize_value($raw[$full], $field);
                 if ($value !== '' && $value !== []) $out[$full] = $value;
             }
-            if (!empty($field['children']) && is_array($field['children'])) {
-                $out = array_merge($out, $this->sanitize_tree($raw, $field['children'], $full));
-            }
+            if (!empty($field['children']) && is_array($field['children'])) $out = array_merge($out, $this->sanitize_tree($raw, $field['children'], $full));
         }
         return $out;
     }
@@ -55,7 +49,6 @@ class EzLens_Product_Options_WooCommerce_Integration {
         elseif ($type === 'number') $value = is_numeric($value) ? (string)(float)$value : '';
         elseif ($type === 'upload') $value = esc_url_raw($value);
         else $value = sanitize_text_field($value);
-
         if (in_array($type, ['select','radio','checkbox','image_select'], true)) {
             $allowed = [];
             foreach (($field['options'] ?? []) as $option) if (is_array($option) && isset($option['value'])) $allowed[] = (string)$option['value'];
@@ -71,15 +64,12 @@ class EzLens_Product_Options_WooCommerce_Integration {
             $full = $prefix !== '' ? $prefix . '_' . $key : (string)$key;
             $conditions = $field['conditions'] ?? $field['conditional_logic'] ?? [];
             if (!$this->conditions_match($conditions, $options)) continue;
-
             $value = $options[$full] ?? '';
             if (!empty($field['required']) && $this->empty_value($value)) {
                 wc_add_notice(sprintf('لطفاً فیلد «%s» را تکمیل کنید.', sanitize_text_field($field['label'] ?? $full)), 'error');
                 $passed = false;
             }
-            if (!empty($field['children']) && is_array($field['children'])) {
-                $this->validate_fields($field['children'], $options, $full, $passed);
-            }
+            if (!empty($field['children']) && is_array($field['children'])) $this->validate_fields($field['children'], $options, $full, $passed);
         }
     }
 
@@ -91,33 +81,32 @@ class EzLens_Product_Options_WooCommerce_Integration {
             $field = sanitize_key($rule['field'] ?? $rule['field_key'] ?? '');
             $operator = sanitize_key($rule['operator'] ?? 'equals');
             if (!$field || !in_array($operator, self::OPERATORS, true)) continue;
-            $actual = $options[$field] ?? '';
-            $expected = $rule['value'] ?? '';
-            if (is_array($actual)) {
-                $actual = array_map('strval', $actual);
-                if ($operator === 'equals' || $operator === 'contains') $results[] = in_array((string)$expected, $actual, true);
-                elseif ($operator === 'not_equals' || $operator === 'not_contains') $results[] = !in_array((string)$expected, $actual, true);
-                else $actual = implode(',', $actual);
-            }
-            if (!is_bool($results[count($results)-1] ?? null) || count($results) === 0 || (is_array($actual) === false && !is_bool(end($results)))) {
-                $a = is_array($actual) ? implode(',', $actual) : (string)$actual;
-                $e = is_array($expected) ? implode(',', $expected) : (string)$expected;
-                switch ($operator) {
-                    case 'not_equals': $results[] = $a !== $e; break;
-                    case 'contains': $results[] = strpos($a, $e) !== false; break;
-                    case 'not_contains': $results[] = strpos($a, $e) === false; break;
-                    case 'greater_than': $results[] = is_numeric($a) && is_numeric($e) && (float)$a > (float)$e; break;
-                    case 'less_than': $results[] = is_numeric($a) && is_numeric($e) && (float)$a < (float)$e; break;
-                    case 'greater_or_equal': $results[] = is_numeric($a) && is_numeric($e) && (float)$a >= (float)$e; break;
-                    case 'less_or_equal': $results[] = is_numeric($a) && is_numeric($e) && (float)$a <= (float)$e; break;
-                    case 'empty': $results[] = $a === ''; break;
-                    case 'not_empty': $results[] = $a !== ''; break;
-                    case 'equals': $results[] = $a === $e; break;
-                }
-            }
+            $results[] = $this->compare($options[$field] ?? '', $rule['value'] ?? '', $operator);
         }
         if (!$results) return true;
         return ($conditions['logic'] ?? 'all') === 'any' ? in_array(true, $results, true) : !in_array(false, $results, true);
+    }
+
+    private function compare($actual, $expected, $operator) {
+        if (is_array($actual)) {
+            $values = array_map('strval', $actual);
+            if ($operator === 'equals' || $operator === 'contains') return in_array((string)$expected, $values, true);
+            if ($operator === 'not_equals' || $operator === 'not_contains') return !in_array((string)$expected, $values, true);
+            $actual = implode(',', $values);
+        }
+        $a = (string)$actual; $e = is_array($expected) ? implode(',', $expected) : (string)$expected;
+        switch ($operator) {
+            case 'not_equals': return $a !== $e;
+            case 'contains': return strpos($a, $e) !== false;
+            case 'not_contains': return strpos($a, $e) === false;
+            case 'greater_than': return is_numeric($a) && is_numeric($e) && (float)$a > (float)$e;
+            case 'less_than': return is_numeric($a) && is_numeric($e) && (float)$a < (float)$e;
+            case 'greater_or_equal': return is_numeric($a) && is_numeric($e) && (float)$a >= (float)$e;
+            case 'less_or_equal': return is_numeric($a) && is_numeric($e) && (float)$a <= (float)$e;
+            case 'empty': return $a === '';
+            case 'not_empty': return $a !== '';
+            default: return $a === $e;
+        }
     }
 
     private function empty_value($value) { return is_array($value) ? empty($value) : ($value === null || $value === ''); }
