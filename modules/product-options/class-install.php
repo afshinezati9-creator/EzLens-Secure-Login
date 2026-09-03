@@ -51,3 +51,9 @@ class EzLens_Product_Options_Install {
 
 // مقداردهی اولیه
 EzLens_Product_Options_Install::get_instance();
+
+// Pricing Engine در هر بار لود ماژول Product Options در دسترس باشد.
+$ezlens_pricing_engine = EZLAUTH_MODULES_DIR . 'product-options/class-pricing-engine.php';
+if (is_readable($ezlens_pricing_engine)) {
+    require_once $ezlens_pricing_engine;
+}
