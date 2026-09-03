@@ -5,6 +5,8 @@ class EzLens_Product_Options_Template_Manager {
     private static $instance = null;
     private $table_name;
 
+    public const SCHEMA_VERSION = 1;
+
     public static function get_instance() {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -17,18 +19,71 @@ class EzLens_Product_Options_Template_Manager {
         $this->table_name = $wpdb->prefix . 'ezlens_option_templates';
     }
 
+    /**
+     * ایجاد ساختار استاندارد نسخه‌دار برای قالب.
+     * قالب‌های قدیمی نیز بدون شکستن سازگاری به همین ساختار نرمال می‌شوند.
+     */
+    public function build_schema($fields = [], $settings = [], $layout = []) {
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+
+        return [
+            'version' => self::SCHEMA_VERSION,
+            'settings' => is_array($settings) ? $settings : [],
+            'layout' => is_array($layout) ? $layout : [],
+            'fields' => $fields,
+        ];
+    }
+
+    /**
+     * تبدیل داده ذخیره‌شده قدیمی یا جدید به Schema استاندارد.
+     */
+    public function normalize_schema($stored_fields) {
+        if (!is_array($stored_fields)) {
+            return $this->build_schema();
+        }
+
+        // Schema جدید: version + fields
+        if (isset($stored_fields['version']) && isset($stored_fields['fields'])) {
+            $version = absint($stored_fields['version']);
+            if ($version === self::SCHEMA_VERSION && is_array($stored_fields['fields'])) {
+                return $this->build_schema(
+                    $stored_fields['fields'],
+                    isset($stored_fields['settings']) ? $stored_fields['settings'] : [],
+                    isset($stored_fields['layout']) ? $stored_fields['layout'] : []
+                );
+            }
+        }
+
+        // Legacy: خود آرایه فیلدها بوده است.
+        return $this->build_schema($stored_fields);
+    }
+
+    /**
+     * ایجاد قالب جدید
+     */
     public function create($data) {
         global $wpdb;
 
         $title = sanitize_text_field($data['title'] ?? '');
         $description = sanitize_textarea_field($data['description'] ?? '');
-        $fields = isset($data['fields']) ? wp_json_encode($data['fields']) : '[]';
+        $schema = $this->build_schema(
+            $data['fields'] ?? [],
+            $data['settings'] ?? [],
+            $data['layout'] ?? []
+        );
+        $fields = wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $status = sanitize_key($data['status'] ?? 'active');
         $status = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
         $created_by = get_current_user_id();
 
         if (empty($title)) {
             return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
+        }
+
+        if (false === $fields) {
+            return ['success' => false, 'message' => 'خطا در ساختار داده‌های قالب.'];
         }
 
         $result = $wpdb->insert(
@@ -52,6 +107,9 @@ class EzLens_Product_Options_Template_Manager {
         return ['success' => true, 'id' => $wpdb->insert_id, 'message' => 'قالب با موفقیت ایجاد شد.'];
     }
 
+    /**
+     * به‌روزرسانی قالب
+     */
     public function update($id, $data) {
         global $wpdb;
 
@@ -76,7 +134,16 @@ class EzLens_Product_Options_Template_Manager {
             $update_format[] = '%s';
         }
         if (isset($data['fields'])) {
-            $update_data['fields'] = wp_json_encode($data['fields']);
+            $schema = $this->build_schema(
+                $data['fields'],
+                $data['settings'] ?? [],
+                $data['layout'] ?? []
+            );
+            $encoded_schema = wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (false === $encoded_schema) {
+                return ['success' => false, 'message' => 'خطا در ساختار داده‌های قالب.'];
+            }
+            $update_data['fields'] = $encoded_schema;
             $update_format[] = '%s';
         }
         if (isset($data['status'])) {
@@ -112,6 +179,10 @@ class EzLens_Product_Options_Template_Manager {
         return ['success' => true, 'message' => 'قالب با موفقیت به‌روزرسانی شد.'];
     }
 
+    /**
+     * دریافت یک قالب با شناسه.
+     * برای سازگاری، fields همچنان همان آرایه فیلدهای قبلی است و schema نیز در دسترس است.
+     */
     public function get($id) {
         global $wpdb;
 
@@ -136,13 +207,23 @@ class EzLens_Product_Options_Template_Manager {
             return null;
         }
 
-        $row['fields'] = json_decode($row['fields'], true);
-        if (!is_array($row['fields'])) {
-            $row['fields'] = [];
-        }
+        $decoded = json_decode($row['fields'], true);
+        $schema = $this->normalize_schema($decoded);
+
+        $row['schema'] = $schema;
+        $row['schema_version'] = self::SCHEMA_VERSION;
+        $row['fields'] = $schema['fields'];
 
         wp_cache_set($cache_key, $row, 'ezlens', 300);
         return $row;
+    }
+
+    /**
+     * دریافت فقط Schema استاندارد یک قالب.
+     */
+    public function get_schema($id) {
+        $template = $this->get($id);
+        return $template ? $template['schema'] : null;
     }
 
     public function get_templates($status = 'all', $search = '', $limit = 20, $offset = 0) {
@@ -235,10 +316,11 @@ class EzLens_Product_Options_Template_Manager {
         $results = $wpdb->get_results($sql, ARRAY_A);
 
         foreach ($results as &$row) {
-            $row['fields'] = json_decode($row['fields'], true);
-            if (!is_array($row['fields'])) {
-                $row['fields'] = [];
-            }
+            $decoded = json_decode($row['fields'], true);
+            $schema = $this->normalize_schema($decoded);
+            $row['schema'] = $schema;
+            $row['schema_version'] = self::SCHEMA_VERSION;
+            $row['fields'] = $schema['fields'];
         }
         unset($row);
 
@@ -263,9 +345,6 @@ class EzLens_Product_Options_Template_Manager {
     public function delete($id) {
         global $wpdb;
         $id = absint($id);
-        if ($id <= 0) {
-            return ['success' => false, 'message' => 'شناسه قالب نامعتبر است.'];
-        }
 
         $connected = $this->get_connected_products_count($id);
         if ($connected > 0) {
@@ -282,7 +361,6 @@ class EzLens_Product_Options_Template_Manager {
     }
 
     public function duplicate($id) {
-        $id = absint($id);
         $template = $this->get($id);
         if (!$template) {
             return ['success' => false, 'message' => 'قالب یافت نشد.'];
@@ -292,6 +370,8 @@ class EzLens_Product_Options_Template_Manager {
             'title' => $template['title'] . ' (کپی)',
             'description' => $template['description'],
             'fields' => $template['fields'],
+            'settings' => $template['schema']['settings'],
+            'layout' => $template['schema']['layout'],
             'status' => 'inactive',
         ];
 
@@ -309,10 +389,6 @@ class EzLens_Product_Options_Template_Manager {
     public function attach_to_product($product_id, $template_id) {
         $product_id = absint($product_id);
         $template_id = absint($template_id);
-
-        if ($product_id <= 0) {
-            return ['success' => false, 'message' => 'شناسه محصول نامعتبر است.'];
-        }
 
         if ($template_id <= 0) {
             delete_post_meta($product_id, '_ezlens_option_template_id');
