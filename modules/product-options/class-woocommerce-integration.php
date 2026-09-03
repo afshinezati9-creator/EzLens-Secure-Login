@@ -1,11 +1,13 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+use EzLens\ProductOptions\Services\ConditionEvaluator;
+
 /** Server-side WooCommerce integration for Product Options. */
 class EzLens_Product_Options_WooCommerce_Integration {
     private static $instance = null;
     private $manager;
-    private const OPERATORS = ['equals','not_equals','contains','not_contains','greater_than','less_than','greater_or_equal','less_or_equal','empty','not_empty'];
+    private $conditions;
 
     public static function get_instance() {
         if (null === self::$instance) self::$instance = new self();
@@ -14,6 +16,7 @@ class EzLens_Product_Options_WooCommerce_Integration {
 
     private function __construct() {
         $this->manager = EzLens_Product_Options_Template_Manager::get_instance();
+        $this->conditions = new ConditionEvaluator();
         add_filter('woocommerce_add_to_cart_validation', [$this, 'validate'], 20, 5);
         add_filter('woocommerce_add_cart_item_data', [$this, 'enrich_cart_item_data'], 30, 3);
     }
@@ -78,48 +81,12 @@ class EzLens_Product_Options_WooCommerce_Integration {
             if (!is_array($field) || strpos((string)$key, '_code_') === 0) continue;
             $full = $prefix !== '' ? $prefix . '_' . $key : (string)$key;
             $conditions = $field['conditions'] ?? $field['conditional_logic'] ?? [];
-            if (!$this->conditions_match($conditions, $options)) continue;
+            if (!$this->conditions->matches($conditions, $options)) continue;
             if (!empty($field['required']) && $this->empty_value($options[$full] ?? '')) {
                 wc_add_notice(sprintf('لطفاً فیلد «%s» را تکمیل کنید.', sanitize_text_field($field['label'] ?? $full)), 'error');
                 $passed = false;
             }
             if (!empty($field['children']) && is_array($field['children'])) $this->validate_fields($field['children'], $options, $full, $passed);
-        }
-    }
-
-    private function conditions_match($conditions, $options) {
-        if (!is_array($conditions) || empty($conditions['rules']) || !is_array($conditions['rules'])) return true;
-        $results = [];
-        foreach ($conditions['rules'] as $rule) {
-            if (!is_array($rule)) continue;
-            $field = sanitize_key($rule['field'] ?? $rule['field_key'] ?? '');
-            $operator = sanitize_key($rule['operator'] ?? 'equals');
-            if (!$field || !in_array($operator, self::OPERATORS, true)) continue;
-            $results[] = $this->compare($options[$field] ?? '', $rule['value'] ?? '', $operator);
-        }
-        if (!$results) return true;
-        return ($conditions['logic'] ?? 'all') === 'any' ? in_array(true, $results, true) : !in_array(false, $results, true);
-    }
-
-    private function compare($actual, $expected, $operator) {
-        if (is_array($actual)) {
-            $values = array_map('strval', $actual);
-            if ($operator === 'equals' || $operator === 'contains') return in_array((string)$expected, $values, true);
-            if ($operator === 'not_equals' || $operator === 'not_contains') return !in_array((string)$expected, $values, true);
-            $actual = implode(',', $values);
-        }
-        $a = (string)$actual; $e = is_array($expected) ? implode(',', $expected) : (string)$expected;
-        switch ($operator) {
-            case 'not_equals': return $a !== $e;
-            case 'contains': return strpos($a, $e) !== false;
-            case 'not_contains': return strpos($a, $e) === false;
-            case 'greater_than': return is_numeric($a) && is_numeric($e) && (float)$a > (float)$e;
-            case 'less_than': return is_numeric($a) && is_numeric($e) && (float)$a < (float)$e;
-            case 'greater_or_equal': return is_numeric($a) && is_numeric($e) && (float)$a >= (float)$e;
-            case 'less_or_equal': return is_numeric($a) && is_numeric($e) && (float)$a <= (float)$e;
-            case 'empty': return $a === '';
-            case 'not_empty': return $a !== '';
-            default: return $a === $e;
         }
     }
 
