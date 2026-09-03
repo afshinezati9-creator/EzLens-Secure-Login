@@ -17,20 +17,18 @@ class EzLens_Product_Options_Template_Manager {
         $this->table_name = $wpdb->prefix . 'ezlens_option_templates';
     }
 
-    /**
-     * ایجاد پالت جدید
-     */
     public function create($data) {
         global $wpdb;
 
         $title = sanitize_text_field($data['title'] ?? '');
         $description = sanitize_textarea_field($data['description'] ?? '');
         $fields = isset($data['fields']) ? wp_json_encode($data['fields']) : '[]';
-        $status = in_array($data['status'] ?? 'active', ['active', 'inactive']) ? $data['status'] : 'active';
+        $status = sanitize_key($data['status'] ?? 'active');
+        $status = in_array($status, ['active', 'inactive'], true) ? $status : 'active';
         $created_by = get_current_user_id();
 
         if (empty($title)) {
-            return ['success' => false, 'message' => 'عنوان پالت الزامی است.'];
+            return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
         }
 
         $result = $wpdb->insert(
@@ -48,24 +46,29 @@ class EzLens_Product_Options_Template_Manager {
         );
 
         if ($result === false) {
-            return ['success' => false, 'message' => 'خطا در ذخیره پالت: ' . $wpdb->last_error];
+            return ['success' => false, 'message' => 'خطا در ذخیره قالب: ' . $wpdb->last_error];
         }
 
-        return ['success' => true, 'id' => $wpdb->insert_id, 'message' => 'پالت با موفقیت ایجاد شد.'];
+        return ['success' => true, 'id' => $wpdb->insert_id, 'message' => 'قالب با موفقیت ایجاد شد.'];
     }
 
-    /**
-     * به‌روزرسانی پالت
-     */
     public function update($id, $data) {
         global $wpdb;
 
-        $id = (int) $id;
+        $id = absint($id);
+        if ($id <= 0) {
+            return ['success' => false, 'message' => 'شناسه قالب نامعتبر است.'];
+        }
+
         $update_data = [];
         $update_format = [];
 
         if (isset($data['title'])) {
-            $update_data['title'] = sanitize_text_field($data['title']);
+            $title = sanitize_text_field($data['title']);
+            if ($title === '') {
+                return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
+            }
+            $update_data['title'] = $title;
             $update_format[] = '%s';
         }
         if (isset($data['description'])) {
@@ -77,7 +80,10 @@ class EzLens_Product_Options_Template_Manager {
             $update_format[] = '%s';
         }
         if (isset($data['status'])) {
-            $status = in_array($data['status'], ['active', 'inactive']) ? $data['status'] : 'active';
+            $status = sanitize_key($data['status']);
+            if (!in_array($status, ['active', 'inactive'], true)) {
+                return ['success' => false, 'message' => 'وضعیت قالب نامعتبر است.'];
+            }
             $update_data['status'] = $status;
             $update_format[] = '%s';
         }
@@ -98,21 +104,22 @@ class EzLens_Product_Options_Template_Manager {
         );
 
         if ($result === false) {
-            return ['success' => false, 'message' => 'خطا در به‌روزرسانی پالت: ' . $wpdb->last_error];
+            return ['success' => false, 'message' => 'خطا در به‌روزرسانی قالب: ' . $wpdb->last_error];
         }
 
         wp_cache_delete('ezlens_template_' . $id, 'ezlens');
 
-        return ['success' => true, 'message' => 'پالت با موفقیت به‌روزرسانی شد.'];
+        return ['success' => true, 'message' => 'قالب با موفقیت به‌روزرسانی شد.'];
     }
 
-    /**
-     * دریافت یک پالت با شناسه
-     */
     public function get($id) {
         global $wpdb;
 
-        $id = (int) $id;
+        $id = absint($id);
+        if ($id <= 0) {
+            return null;
+        }
+
         $cache_key = 'ezlens_template_' . $id;
         $template = wp_cache_get($cache_key, 'ezlens');
 
@@ -138,9 +145,6 @@ class EzLens_Product_Options_Template_Manager {
         return $row;
     }
 
-    /**
-     * دریافت لیست پالت‌ها با فیلتر و صفحه‌بندی (برای استفاده در template-list.php)
-     */
     public function get_templates($status = 'all', $search = '', $limit = 20, $offset = 0) {
         $args = [
             'status' => $status,
@@ -152,32 +156,29 @@ class EzLens_Product_Options_Template_Manager {
         return $result['items'];
     }
 
-    /**
-     * تعداد کل پالت‌ها (برای صفحه‌بندی)
-     */
     public function count_templates($status = 'all', $search = '') {
         global $wpdb;
 
         $where = [];
 
         if ($status !== 'all') {
-            $where[] = $wpdb->prepare("status = %s", $status);
+            $status = sanitize_key($status);
+            if (in_array($status, ['active', 'inactive'], true)) {
+                $where[] = $wpdb->prepare("status = %s", $status);
+            }
         }
 
         if (!empty($search)) {
-            $search_like = '%' . $wpdb->esc_like($search) . '%';
+            $search_like = '%' . $wpdb->esc_like(sanitize_text_field($search)) . '%';
             $where[] = $wpdb->prepare("(title LIKE %s OR description LIKE %s)", $search_like, $search_like);
         }
 
         $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
         $sql = "SELECT COUNT(*) FROM {$this->table_name} {$where_sql}";
-        
+
         return (int) $wpdb->get_var($sql);
     }
 
-    /**
-     * دریافت لیست پالت‌ها با فیلتر و صفحه‌بندی (نسخه کامل)
-     */
     public function get_list($args = []) {
         global $wpdb;
 
@@ -193,18 +194,42 @@ class EzLens_Product_Options_Template_Manager {
         $args = wp_parse_args($args, $defaults);
         $where = [];
 
-        if ($args['status'] !== 'all') {
-            $where[] = $wpdb->prepare("status = %s", $args['status']);
+        $status = sanitize_key($args['status']);
+        if ($status !== 'all') {
+            if (!in_array($status, ['active', 'inactive'], true)) {
+                $status = 'all';
+            } else {
+                $where[] = $wpdb->prepare("status = %s", $status);
+            }
         }
 
-        if (!empty($args['search'])) {
-            $search = '%' . $wpdb->esc_like($args['search']) . '%';
-            $where[] = $wpdb->prepare("(title LIKE %s OR description LIKE %s)", $search, $search);
+        $search = sanitize_text_field($args['search']);
+        if ($search !== '') {
+            $search_like = '%' . $wpdb->esc_like($search) . '%';
+            $where[] = $wpdb->prepare("(title LIKE %s OR description LIKE %s)", $search_like, $search_like);
         }
+
+        $allowed_orderby = [
+            'id' => 'id',
+            'title' => 'title',
+            'status' => 'status',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+        ];
+        $requested_orderby = sanitize_key($args['orderby']);
+        $orderby = $allowed_orderby[$requested_orderby] ?? 'created_at';
+
+        $order = strtoupper(sanitize_key($args['order']));
+        if (!in_array($order, ['ASC', 'DESC'], true)) {
+            $order = 'DESC';
+        }
+
+        $limit = min(100, max(1, absint($args['limit'])));
+        $offset = max(0, absint($args['offset']));
 
         $where_sql = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $order_sql = "ORDER BY {$args['orderby']} {$args['order']}";
-        $limit_sql = $wpdb->prepare("LIMIT %d OFFSET %d", $args['limit'], $args['offset']);
+        $order_sql = "ORDER BY {$orderby} {$order}";
+        $limit_sql = $wpdb->prepare("LIMIT %d OFFSET %d", $limit, $offset);
 
         $sql = "SELECT * FROM {$this->table_name} {$where_sql} {$order_sql} {$limit_sql}";
         $results = $wpdb->get_results($sql, ARRAY_A);
@@ -215,6 +240,7 @@ class EzLens_Product_Options_Template_Manager {
                 $row['fields'] = [];
             }
         }
+        unset($row);
 
         $count_sql = "SELECT COUNT(*) FROM {$this->table_name} {$where_sql}";
         $total = (int) $wpdb->get_var($count_sql);
@@ -225,47 +251,41 @@ class EzLens_Product_Options_Template_Manager {
         ];
     }
 
-    /**
-     * تعداد محصولات متصل به یک پالت
-     */
     public function get_connected_products_count($template_id) {
         global $wpdb;
         $count = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = '_ezlens_option_template_id' AND meta_value = %d",
-            (int) $template_id
+            absint($template_id)
         ));
         return (int) $count;
     }
 
-    /**
-     * حذف پالت (با چک کردن محصولات متصل)
-     */
     public function delete($id) {
         global $wpdb;
-        $id = (int) $id;
-        
-        // بررسی وجود محصولات متصل
+        $id = absint($id);
+        if ($id <= 0) {
+            return ['success' => false, 'message' => 'شناسه قالب نامعتبر است.'];
+        }
+
         $connected = $this->get_connected_products_count($id);
         if ($connected > 0) {
-            return ['success' => false, 'message' => 'این پالت به ' . $connected . ' محصول متصل است. ابتدا اتصال را قطع کنید.'];
+            return ['success' => false, 'message' => 'این قالب به ' . $connected . ' محصول متصل است. ابتدا اتصال را قطع کنید.'];
         }
-        
+
         $result = $wpdb->delete($this->table_name, ['id' => $id], ['%d']);
         if ($result === false) {
-            return ['success' => false, 'message' => 'خطا در حذف پالت: ' . $wpdb->last_error];
+            return ['success' => false, 'message' => 'خطا در حذف قالب: ' . $wpdb->last_error];
         }
-        
+
         wp_cache_delete('ezlens_template_' . $id, 'ezlens');
-        return ['success' => true, 'message' => 'پالت با موفقیت حذف شد.'];
+        return ['success' => true, 'message' => 'قالب با موفقیت حذف شد.'];
     }
 
-    /**
-     * کپی کردن پالت
-     */
     public function duplicate($id) {
+        $id = absint($id);
         $template = $this->get($id);
         if (!$template) {
-            return ['success' => false, 'message' => 'پالت یافت نشد.'];
+            return ['success' => false, 'message' => 'قالب یافت نشد.'];
         }
 
         $new_data = [
@@ -278,38 +298,35 @@ class EzLens_Product_Options_Template_Manager {
         return $this->create($new_data);
     }
 
-    /**
-     * دریافت پالت متصل به یک محصول خاص
-     */
     public function get_template_for_product($product_id) {
-        $template_id = get_post_meta($product_id, '_ezlens_option_template_id', true);
+        $template_id = get_post_meta(absint($product_id), '_ezlens_option_template_id', true);
         if (empty($template_id)) {
             return null;
         }
         return $this->get((int) $template_id);
     }
 
-    /**
-     * اتصال پالت به محصول
-     */
     public function attach_to_product($product_id, $template_id) {
-        $product_id = (int) $product_id;
-        $template_id = (int) $template_id;
+        $product_id = absint($product_id);
+        $template_id = absint($template_id);
+
+        if ($product_id <= 0) {
+            return ['success' => false, 'message' => 'شناسه محصول نامعتبر است.'];
+        }
 
         if ($template_id <= 0) {
             delete_post_meta($product_id, '_ezlens_option_template_id');
-            return ['success' => true, 'message' => 'پالت از محصول جدا شد.'];
+            return ['success' => true, 'message' => 'قالب از محصول جدا شد.'];
         }
 
         $template = $this->get($template_id);
         if (!$template) {
-            return ['success' => false, 'message' => 'پالت یافت نشد.'];
+            return ['success' => false, 'message' => 'قالب یافت نشد.'];
         }
 
         update_post_meta($product_id, '_ezlens_option_template_id', $template_id);
-        return ['success' => true, 'message' => 'پالت به محصول متصل شد.'];
+        return ['success' => true, 'message' => 'قالب به محصول متصل شد.'];
     }
 }
 
-// مقداردهی اولیه
 EzLens_Product_Options_Template_Manager::get_instance();
