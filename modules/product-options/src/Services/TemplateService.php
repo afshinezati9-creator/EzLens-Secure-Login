@@ -43,7 +43,6 @@ final class TemplateService {
             }
         }
 
-        // Legacy storage: the DB value itself was the fields array.
         return $this->build_schema($stored);
     }
 
@@ -52,11 +51,7 @@ final class TemplateService {
         if ($title === '') return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
 
         $description = sanitize_textarea_field($data['description'] ?? '');
-        $schema = $this->build_schema(
-            $data['fields'] ?? [],
-            $data['settings'] ?? [],
-            $data['layout'] ?? []
-        );
+        $schema = $this->build_schema($data['fields'] ?? [], $data['settings'] ?? [], $data['layout'] ?? []);
         $encoded = wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($encoded === false) return ['success' => false, 'message' => 'خطا در ساختار داده‌های قالب.'];
 
@@ -85,7 +80,6 @@ final class TemplateService {
 
         $update = [];
         $formats = [];
-
         if (isset($data['title'])) {
             $title = sanitize_text_field($data['title']);
             if ($title === '') return ['success' => false, 'message' => 'عنوان قالب الزامی است.'];
@@ -177,6 +171,10 @@ final class TemplateService {
 
     public function count_templates($status = 'all', $search = '') {
         return $this->get_list(['status' => $status, 'search' => $search, 'limit' => 1, 'offset' => 0])['total'];
+    }
+
+    public function get_connected_products_count($template_id) {
+        return $this->repository->count_connected_products($template_id);
     }
 
     public function delete($id) {
