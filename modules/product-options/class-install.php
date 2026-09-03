@@ -41,3 +41,6 @@ if (is_readable($ezlens_pricing_engine)) require_once $ezlens_pricing_engine;
 
 $ezlens_wc_integration = EZLAUTH_MODULES_DIR . 'product-options/class-woocommerce-integration.php';
 if (is_readable($ezlens_wc_integration)) require_once $ezlens_wc_integration;
+
+$ezlens_preset_page = EZLAUTH_MODULES_DIR . 'product-options/admin/class-preset-library-page.php';
+if (is_readable($ezlens_preset_page)) require_once $ezlens_preset_page;
