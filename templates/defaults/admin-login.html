@@ -1,0 +1,44 @@
+<!-- ============================================================
+     قالب پیش‌فرض صفحه ورود مدیر
+     کلاس‌های اصلی: .admin-auth-wrap, .admin-auth-card
+     ============================================================ -->
+<div class="admin-auth-wrap">
+    <div class="admin-auth-logo" style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:28px;font-weight:800;color:#fff;">ایزی لنز</div>
+    </div>
+    <div class="admin-auth-card">
+        <div class="admin-auth-badge">🔒 ورود مدیران</div>
+        <h2>ورود به پنل مدیریت</h2>
+        <p class="admin-auth-url-hint">
+            آدرس جدید: <code>ezlens.ir/admin-secret</code>
+        </p>
+        <form>
+            <div class="admin-auth-field">
+                <label>نام کاربری مدیریت</label>
+                <input type="text" placeholder="admin" value="admin">
+            </div>
+            <div class="admin-auth-field">
+                <label>رمز عبور</label>
+                <input type="password" placeholder="••••••••" value="admin123">
+            </div>
+            <div class="admin-auth-extra">
+                <label class="admin-auth-remember">
+                    <input type="checkbox" checked> مرا به خاطر بسپار
+                </label>
+                <a class="admin-auth-forgot" href="#">فراموشی رمز؟</a>
+            </div>
+            <div class="admin-auth-captcha">
+                <span class="captcha-label">کد امنیتی:</span>
+                <span class="captcha-numbers"><span>6</span><span>+</span><span>3</span></span>
+                <span class="captcha-equals">=</span>
+                <input type="text" class="captcha-input" placeholder="?">
+                <button type="button" class="captcha-reload">🔄</button>
+            </div>
+            <button class="admin-auth-btn" type="submit">ورود به مدیریت</button>
+            <div class="admin-auth-warning">
+                ⚠️ آدرس‌های <code>wp-admin</code> و <code>wp-login.php</code> غیرفعال شده‌اند.
+            </div>
+        </form>
+        <a class="admin-auth-back" href="#">← بازگشت به فروشگاه</a>
+    </div>
+</div>

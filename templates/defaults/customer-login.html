@@ -1,0 +1,73 @@
+<!-- ============================================================
+     قالب پیش‌فرض صفحه ورود مشتری
+     کلاس‌های اصلی: .min-auth-wrapper, .min-auth-container, .min-auth-tabs
+     ============================================================ -->
+<div class="min-auth-wrapper">
+    <div class="min-auth-logo-top">
+        <div style="font-size:28px;font-weight:800;color:#2b6cb0;">ایزی لنز</div>
+    </div>
+    <div class="min-auth-container">
+        <div class="min-auth-site-name">
+            <h2>ایزی لنز</h2>
+            <p class="min-auth-subtitle">فروشگاهی برای سلامت بینایی شما</p>
+        </div>
+        <div class="min-auth-tabs">
+            <div class="min-auth-tab active" data-target="login">ورود</div>
+            <div class="min-auth-tab" data-target="register">ثبت نام</div>
+        </div>
+        <!-- فرم ورود -->
+        <form class="min-auth-form active" id="login-form">
+            <div class="min-auth-input-group">
+                <label>نام کاربری یا ایمیل</label>
+                <input type="text" placeholder="example@email.com">
+            </div>
+            <div class="min-auth-input-group">
+                <label>رمز عبور</label>
+                <input type="password" placeholder="••••••••">
+            </div>
+            <div class="min-auth-extra">
+                <label class="min-auth-remember">
+                    <input type="checkbox" checked> مرا به خاطر بسپار
+                </label>
+                <a class="min-auth-forgot" href="#">فراموشی رمز؟</a>
+            </div>
+            <div class="min-auth-captcha">
+                <span class="captcha-label">کد امنیتی:</span>
+                <span class="captcha-numbers"><span>3</span><span>+</span><span>5</span></span>
+                <span class="captcha-equals">=</span>
+                <input type="text" class="captcha-input" placeholder="?">
+                <button type="button" class="captcha-reload">🔄</button>
+            </div>
+            <button class="min-auth-btn" type="submit">ورود به سایت</button>
+            <a class="min-auth-back" href="#">← بازگشت به فروشگاه</a>
+        </form>
+        <!-- فرم ثبت نام -->
+        <form class="min-auth-form" id="register-form">
+            <div class="min-auth-input-group">
+                <label>نام کاربری</label>
+                <input type="text" placeholder="نام کاربری">
+            </div>
+            <div class="min-auth-input-group">
+                <label>ایمیل</label>
+                <input type="email" placeholder="example@email.com">
+            </div>
+            <div class="min-auth-input-group">
+                <label>موبایل</label>
+                <input type="tel" placeholder="09123456789">
+            </div>
+            <div class="min-auth-input-group">
+                <label>رمز عبور</label>
+                <input type="password" placeholder="حداقل ۸ کاراکتر">
+            </div>
+            <div class="min-auth-captcha">
+                <span class="captcha-label">کد امنیتی:</span>
+                <span class="captcha-numbers"><span>7</span><span>+</span><span>2</span></span>
+                <span class="captcha-equals">=</span>
+                <input type="text" class="captcha-input" placeholder="?">
+                <button type="button" class="captcha-reload">🔄</button>
+            </div>
+            <button class="min-auth-btn" type="submit">عضویت در سایت</button>
+            <a class="min-auth-back" href="#">← بازگشت به فروشگاه</a>
+        </form>
+    </div>
+</div>

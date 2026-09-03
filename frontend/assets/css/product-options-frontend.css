@@ -1,0 +1,271 @@
+/* ===== استایل‌های محصولات فرانت‌اند ===== */
+.ezlens-product-options-wrapper {
+    margin: 24px 0;
+    padding: 20px 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.ezlens-options-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.ezlens-options-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.ezlens-field-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.ezlens-field-wrapper.ezlens-width-full {
+    width: 100%;
+}
+.ezlens-field-wrapper.ezlens-width-half {
+    width: calc(50% - 6px);
+}
+.ezlens-field-wrapper.ezlens-width-third {
+    width: calc(33.33% - 8px);
+}
+.ezlens-field-wrapper.ezlens-width-quarter {
+    width: calc(25% - 9px);
+}
+
+@media (max-width: 768px) {
+    .ezlens-field-wrapper.ezlens-width-half,
+    .ezlens-field-wrapper.ezlens-width-third,
+    .ezlens-field-wrapper.ezlens-width-quarter {
+        width: 100%;
+    }
+}
+
+.ezlens-field-wrapper label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.ezlens-field-wrapper .required {
+    color: #dc2626;
+}
+
+.ezlens-field-wrapper input[type="text"],
+.ezlens-field-wrapper input[type="email"],
+.ezlens-field-wrapper input[type="tel"],
+.ezlens-field-wrapper input[type="number"],
+.ezlens-field-wrapper input[type="date"],
+.ezlens-field-wrapper textarea,
+.ezlens-field-wrapper select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #f8fafc;
+    width: 100%;
+}
+
+.ezlens-field-wrapper input:focus,
+.ezlens-field-wrapper textarea:focus,
+.ezlens-field-wrapper select:focus {
+    border-color: #2b6cb0;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(43,108,176,0.1);
+    background: #fff;
+}
+
+.ezlens-field-wrapper input[type="color"] {
+    width: 50px;
+    height: 40px;
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+}
+
+/* گروه‌های رادیو و چک‌باکس */
+.ezlens-radio-group,
+.ezlens-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.ezlens-radio-label,
+.ezlens-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ezlens-radio-label:hover,
+.ezlens-checkbox-label:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.ezlens-radio-label input:checked + .ezlens-option-label,
+.ezlens-checkbox-label input:checked + .ezlens-option-label {
+    color: #2b6cb0;
+    font-weight: 600;
+}
+
+/* انتخاب تصویری */
+.ezlens-image-select-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.ezlens-image-select-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+}
+
+.ezlens-image-select-label:hover {
+    border-color: #e2e8f0;
+}
+
+.ezlens-image-select-label.has-image {
+    padding: 4px;
+}
+
+.ezlens-image-select-label .ezlens-option-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.ezlens-image-select-label input:checked + .ezlens-option-label {
+    color: #2b6cb0;
+    font-weight: 600;
+}
+
+.ezlens-image-select-label input:checked {
+    border-color: #2b6cb0;
+}
+
+.ezlens-image-select-label input:checked ~ .ezlens-option-image {
+    border-color: #2b6cb0;
+}
+
+.ezlens-option-price {
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* آپلود فایل */
+.ezlens-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ezlens-upload-wrapper input[type="file"] {
+    padding: 8px;
+    border: 1px dashed #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.ezlens-upload-progress {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ezlens-upload-progress .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #2b6cb0, #4299e1);
+    width: 0%;
+    transition: width 0.3s;
+    border-radius: 4px;
+}
+
+.ezlens-upload-preview {
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* سایر */
+.ezlens-field-heading {
+    margin: 8px 0 4px;
+    color: #0f172a;
+}
+
+.ezlens-field-divider {
+    margin: 8px 0;
+}
+
+.ezlens-field-spacer {
+    width: 100%;
+}
+
+.ezlens-field-html {
+    font-size: 14px;
+    color: #334155;
+}
+
+/* قیمت نهایی */
+.ezlens-total-price {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 2px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.ezlens-total-price .price {
+    color: #2b6cb0;
+    font-size: 20px;
+}
+
+/* استایل خطا */
+.ezlens-field-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.1) !important;
+}
+
+.ezlens-error-message {
+    font-size: 12px;
+    color: #dc2626;
+    margin-top: 2px;
+}

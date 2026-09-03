@@ -1,0 +1,545 @@
+/* ============================================================
+   EzLens Secure Login - Admin Login Styles
+   استایل‌های صفحه ورود مدیر (admin-login)
+   ============================================================ */
+
+.admin-auth-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+    font-family: IRANYekan, Tahoma, Arial, sans-serif;
+    direction: rtl;
+    box-sizing: border-box;
+}
+.admin-auth-container {
+    width: 100%;
+    max-width: 420px;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.admin-auth-logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.admin-auth-logo-text {
+    font-size: clamp(24px, 5vw, 28px);
+    font-weight: 800;
+    color: #0f172a;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.admin-auth-card {
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border-radius: 28px;
+    padding: clamp(20px, 3vw, 32px) clamp(16px, 3vw, 28px) clamp(18px, 3vw, 28px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.04), 0 0 0 1px rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative;
+    transition: all 0.3s ease;
+}
+.admin-auth-card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--ezlens-primary), transparent);
+    border-radius: 0 0 2px 2px;
+}
+.admin-auth-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--ezlens-primary);
+    color: #fff;
+    padding: 3px 16px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: fit-content;
+    margin: 0 auto 12px;
+    box-shadow: 0 4px 12px rgba(43,108,176,0.15);
+}
+.admin-auth-card h2 {
+    font-size: clamp(20px, 4vw, 24px);
+    font-weight: 800;
+    text-align: center;
+    color: #0f172a;
+    margin: 0 0 2px;
+}
+.admin-auth-card .admin-auth-subtitle {
+    text-align: center;
+    font-size: clamp(13px, 2vw, 14px);
+    color: #475569;
+    margin: 0 0 14px;
+}
+.admin-auth-url-hint {
+    text-align: center;
+    font-size: clamp(12px, 1.8vw, 13px);
+    color: #475569;
+    margin: 0 0 20px;
+    padding: 6px 14px;
+    background: rgba(241,245,249,0.7);
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(226,232,240,0.5);
+}
+.admin-auth-url-hint code {
+    background: rgba(255,255,255,0.7);
+    padding: 2px 10px;
+    border-radius: 6px;
+    direction: ltr;
+    font-size: clamp(12px, 1.8vw, 13px);
+    font-weight: 600;
+    color: var(--ezlens-primary);
+    border: 1px solid rgba(43,108,176,0.1);
+}
+
+.admin-auth-field { margin-bottom: 16px; }
+.admin-auth-field label {
+    display: block;
+    font-size: clamp(12px, 1.8vw, 13px);
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 5px;
+}
+.admin-auth-field .field-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.admin-auth-field .field-input-wrap input {
+    width: 100%;
+    padding: clamp(10px, 1.5vw, 12px) clamp(36px, 4vw, 40px) clamp(10px, 1.5vw, 12px) clamp(12px, 2vw, 14px);
+    background: rgba(248,250,252,0.8);
+    border: 2px solid rgba(226,232,240,0.6);
+    border-radius: 14px;
+    font-size: clamp(14px, 2vw, 15px);
+    color: #0f172a;
+    outline: none;
+    font-family: inherit;
+    min-height: 48px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+.admin-auth-field .field-input-wrap input:focus {
+    background: rgba(255,255,255,0.95);
+    border-color: var(--ezlens-primary);
+    box-shadow: 0 0 0 4px rgba(43,108,176,0.08);
+}
+.admin-auth-field .field-input-wrap input::placeholder {
+    color: #94a3b8;
+    font-size: clamp(13px, 2vw, 14px);
+}
+.admin-auth-field .field-input-wrap .field-icon {
+    position: absolute;
+    right: 14px;
+    font-size: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.admin-auth-field .password-wrap .toggle-password {
+    position: absolute;
+    left: 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+.admin-auth-field .password-wrap .toggle-password:hover {
+    color: var(--ezlens-primary);
+    background: rgba(43,108,176,0.06);
+}
+.admin-auth-field .password-wrap .toggle-password .eye-icon {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+}
+.admin-auth-field .password-wrap .toggle-password:focus {
+    outline: 2px solid var(--ezlens-primary);
+    outline-offset: 2px;
+}
+
+.admin-auth-extra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: -4px 0 16px 0;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.admin-auth-remember {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(12px, 1.8vw, 13px);
+    color: #475569;
+    cursor: pointer;
+}
+.admin-auth-remember input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--ezlens-primary);
+}
+.admin-auth-forgot-btn {
+    font-size: clamp(12px, 1.8vw, 13px);
+    color: #3b82f6;
+    background: none;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+.admin-auth-forgot-btn:hover { color: var(--ezlens-primary); }
+
+.admin-auth-captcha {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: clamp(8px, 1vw, 10px) clamp(10px, 1.5vw, 14px);
+    background: rgba(248,250,252,0.8);
+    border: 2px solid rgba(226,232,240,0.6);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    transition: border-color 0.3s;
+    backdrop-filter: blur(4px);
+}
+.admin-auth-captcha:focus-within {
+    border-color: var(--ezlens-primary);
+    background: rgba(255,255,255,0.9);
+}
+.admin-auth-captcha .captcha-label {
+    font-size: clamp(12px, 1.8vw, 13px);
+    font-weight: 600;
+    color: #0f172a;
+}
+.admin-auth-captcha .captcha-numbers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: clamp(15px, 2.2vw, 17px);
+    font-weight: 700;
+    color: var(--ezlens-primary);
+}
+.admin-auth-captcha .captcha-numbers span {
+    background: rgba(255,255,255,0.8);
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(226,232,240,0.6);
+    min-width: 24px;
+    text-align: center;
+}
+.admin-auth-captcha .captcha-equals {
+    font-size: clamp(15px, 2.2vw, 17px);
+    font-weight: 700;
+    color: #475569;
+}
+.admin-auth-captcha .captcha-input {
+    flex: 1;
+    min-width: 50px;
+    max-width: 70px;
+    padding: 6px 4px;
+    border: 2px solid rgba(226,232,240,0.6);
+    border-radius: 10px;
+    font-size: clamp(14px, 2vw, 16px);
+    text-align: center;
+    background: rgba(255,255,255,0.8);
+    outline: none;
+    font-family: inherit;
+    min-height: 38px;
+    transition: border-color 0.3s;
+}
+.admin-auth-captcha .captcha-input:focus {
+    border-color: var(--ezlens-primary);
+    background: #fff;
+}
+.admin-auth-captcha .captcha-reload {
+    cursor: pointer;
+    background: rgba(226,232,240,0.6);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e293b;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
+}
+.admin-auth-captcha .captcha-reload:hover {
+    background: rgba(203,213,225,0.8);
+    transform: rotate(45deg);
+}
+.admin-auth-captcha .captcha-reload svg { stroke: currentColor; }
+
+.admin-auth-btn {
+    width: 100%;
+    padding: clamp(12px, 1.8vw, 14px);
+    border: none;
+    border-radius: 14px;
+    background: var(--ezlens-primary);
+    color: #fff;
+    font-size: clamp(15px, 2vw, 16px);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    min-height: 50px;
+    box-shadow: 0 4px 16px rgba(43,108,176,0.15);
+}
+.admin-auth-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(43,108,176,0.2);
+}
+.admin-auth-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+.admin-auth-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.admin-auth-msg {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    text-align: center;
+    display: none;
+    font-weight: 600;
+    line-height: 1.6;
+    animation: slideDown 0.3s ease;
+}
+.admin-auth-msg.error,
+.admin-auth-msg.success,
+.admin-auth-msg.info {
+    display: block;
+}
+.admin-auth-msg.error {
+    background: rgba(254,242,242,0.9);
+    color: #dc2626;
+    border: 1px solid rgba(254,202,202,0.6);
+    backdrop-filter: blur(4px);
+}
+.admin-auth-msg.success {
+    background: rgba(240,253,244,0.9);
+    color: #16a34a;
+    border: 1px solid rgba(187,247,208,0.6);
+    backdrop-filter: blur(4px);
+}
+.admin-auth-msg.info {
+    background: rgba(239,246,255,0.9);
+    color: #2563eb;
+    border: 1px solid rgba(191,219,254,0.6);
+    backdrop-filter: blur(4px);
+}
+.admin-auth-msg.error.shake { animation: shake 0.4s ease; }
+
+.admin-auth-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 14px auto 0;
+    padding: clamp(8px, 1.2vw, 10px) clamp(16px, 2.5vw, 20px);
+    background: var(--ezlens-primary);
+    border: none;
+    border-radius: 12px;
+    color: #fff !important;
+    font-size: clamp(13px, 1.8vw, 14px);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+    width: 50%;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(43,108,176,0.15);
+}
+.admin-auth-back:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(43,108,176,0.2);
+    color: #fff !important;
+}
+.admin-auth-back svg {
+    stroke: currentColor;
+    width: 18px;
+    height: 18px;
+}
+
+.admin-auth-warning {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #64748b;
+    background: #fef3c7;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #fcd34d;
+    line-height: 1.8;
+}
+
+/* فراموشی رمز مدیر (اورلی) */
+.admin-auth-forgot-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(15,23,42,0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+.admin-auth-forgot-overlay.active { display: flex; }
+.admin-auth-forgot-box {
+    background: #fff;
+    border-radius: 24px;
+    padding: clamp(20px, 3vw, 28px) clamp(16px, 2.5vw, 22px);
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    position: relative;
+}
+.admin-auth-forgot-close {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    padding: 4px;
+}
+.admin-auth-forgot-close:hover { color: #475569; }
+.admin-auth-forgot-box h3 {
+    font-size: clamp(18px, 4vw, 20px);
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #0f172a;
+}
+.admin-auth-forgot-box p {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0 0 16px;
+}
+.admin-auth-forgot-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.admin-auth-forgot-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    background: rgba(241,245,249,0.7);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: clamp(12px, 2vw, 13px);
+    color: #64748b;
+    border: none;
+    font-family: inherit;
+}
+.admin-auth-forgot-tab.active {
+    background: var(--ezlens-primary);
+    color: #fff;
+}
+.admin-auth-forgot-form { display: none; }
+.admin-auth-forgot-form.active { display: block; }
+
+.admin-auth-forgot-btn {
+    width: 100%;
+    padding: clamp(10px, 1.5vw, 12px);
+    border: none;
+    border-radius: 12px;
+    background: var(--ezlens-primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: clamp(14px, 2vw, 15px);
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 6px;
+    box-shadow: 0 4px 12px rgba(43,108,176,0.1);
+}
+.admin-auth-forgot-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.admin-auth-forgot-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+.admin-auth-forgot-back {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    color: #64748b;
+    font-size: 13px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+    width: 100%;
+}
+.admin-auth-forgot-back:hover { color: var(--ezlens-primary); }
+
+/* ============================================================
+   اصلاح اندازه آیکون‌های ورود مدیر
+   ============================================================ */
+.admin-auth-wrap svg {
+    width: 18px !important;
+    height: 18px !important;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
+}
+.admin-auth-wrap .admin-auth-badge svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+.admin-auth-wrap .toggle-password svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+.admin-auth-wrap .admin-auth-back svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+.admin-auth-wrap .admin-auth-forgot-tab svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+.admin-auth-wrap .admin-auth-forgot-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+.admin-auth-wrap .captcha-reload svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+.admin-auth-wrap .field-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+}

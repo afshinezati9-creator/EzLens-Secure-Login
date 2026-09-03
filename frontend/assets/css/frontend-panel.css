@@ -1,0 +1,2105 @@
+/* ============================================================
+   EzLens Secure Login - User Panel Styles (Modern & Minimal)
+   پنل کاربری مدرن و مینیمال با هویت بصری برند
+   Version: 2.4.0 (Upgraded with specific Cart/Orders Fixes & 6-Item Mobile Nav)
+   ============================================================ */
+
+.ezu {
+    --primary: #031f8a;
+    --primary-light: #1a3a9e;
+    --primary-dark: #02166b;
+    --secondary: #5c8092;
+    --accent: #ff6b6d;
+    --success: #27ae60;
+    --danger: #c0392b;
+    --warning: #f39c12;
+    
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-hover: #f1f5f9;
+    --bg-active: rgba(3, 31, 138, 0.06);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --border-light: #eef2f6;
+    --border-medium: #e2e8f0;
+    --border-dark: #cbd5e1;
+    
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(3, 31, 138, 0.08);
+    --shadow-lg: 0 12px 40px rgba(3, 31, 138, 0.12);
+    --shadow-xl: 0 20px 60px rgba(3, 31, 138, 0.15);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    
+    --nav-h: 64px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    font-family: IRANYekan, -apple-system, BlinkMacSystemFont, Tahoma, Arial, sans-serif;
+    color: var(--text-primary);
+    direction: rtl;
+    max-width: 1500px;
+    margin: 0 auto;
+    width: 100%;
+    background: var(--bg-main);
+    padding: 16px;
+}
+
+/* ===== هدر موبایل ===== */
+.ezu-m-head {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    margin-bottom: 14px;
+}
+
+.ezu-m-head .who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.ezu-m-head .who img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--bg-card);
+    box-shadow: 0 0 0 2px rgba(3, 31, 138, 0.15);
+}
+
+.ezu-m-head .who .nm {
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ezu-m-head .who .em {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ezu-m-head .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary);
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.ezu-m-head .back:hover {
+    background: var(--primary-dark);
+    transform: scale(0.97);
+}
+
+/* ===== لایه‌بندی اصلی ===== */
+.ezu-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* ===== سایدبار ===== */
+.ezu-side {
+    flex: 0 1 260px;
+    max-width: 280px;
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    align-self: flex-start;
+    position: sticky;
+    top: 90px;
+    transition: var(--transition);
+}
+
+.ezu-side:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+/* کاربر در سایدبار */
+.ezu-user {
+    padding: 24px 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-light);
+    background: linear-gradient(145deg, rgba(3, 31, 138, 0.05), rgba(3, 31, 138, 0.01));
+}
+
+.ezu-av {
+    width: 92px !important;
+    height: 92px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: block !important;
+    margin: 0 auto 14px !important;
+    background: var(--bg-hover) !important;
+    border: 4px solid var(--bg-card) !important;
+    box-shadow: 0 0 0 3px rgba(3, 31, 138, 0.15), var(--shadow-lg) !important;
+    transition: var(--transition) !important;
+}
+
+.ezu-av:hover {
+    transform: scale(1.05) rotate(-1deg) !important;
+    box-shadow: 0 0 0 4px rgba(3, 31, 138, 0.2), var(--shadow-xl) !important;
+}
+
+.ezu-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 2px;
+}
+
+.ezu-mail {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    word-break: break-all;
+}
+
+/* ناوبری سایدبار */
+.ezu-nav-d {
+    list-style: none;
+    margin: 0;
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ezu-nav-d button,
+.ezu-nav-d a {
+    width: 100%;
+    text-align: right;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: var(--transition);
+    min-height: 44px;
+    position: relative;
+}
+
+.ezu-nav-d button:hover,
+.ezu-nav-d a:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.ezu-nav-d button.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(3, 31, 138, 0.25);
+}
+
+.ezu-nav-d button.active:hover {
+    background: var(--primary-light);
+}
+
+.ezu-nav-d .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.ezu-nav-d .icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    transition: var(--transition);
+}
+
+.ezu-nav-d button.active .icon svg {
+    stroke: #fff;
+}
+
+.ezu-nav-d .label {
+    flex: 1;
+    white-space: nowrap;
+}
+
+.ezu-nav-d .logout {
+    color: var(--danger);
+    border-top: 1px solid var(--border-light);
+    margin-top: 6px;
+    padding-top: 14px;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.ezu-nav-d .logout .icon svg {
+    stroke: var(--danger);
+}
+
+.ezu-nav-d .logout:hover {
+    background: rgba(192, 57, 43, 0.08);
+    color: var(--danger);
+}
+
+.ezu-nav-d .logout:hover .icon svg {
+    stroke: var(--danger);
+}
+
+/* دکمه بازگشت به فروشگاه */
+.ezu-side .shop-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 8px 10px 14px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-light);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.ezu-side .shop-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.ezu-side .shop-btn .icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+}
+
+/* ===== محتوای اصلی ===== */
+.ezu-main {
+    flex: 1 1 480px;
+    min-width: 0;
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    padding: clamp(1.2rem, 2.5vw, 1.8rem);
+    transition: var(--transition);
+}
+
+.ezu-main:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.ezu-main-pad {
+    padding-bottom: 0;
+}
+
+/* تب‌ها */
+.ezu-tab {
+    display: none;
+    animation: fadeIn 0.35s ease;
+}
+
+.ezu-tab.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* عنوان بخش */
+.ezu-title {
+    font-size: clamp(1.1rem, 2.4vw, 1.3rem);
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 1rem;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ezu-title svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--primary);
+    fill: none;
+    stroke-width: 2;
+    margin-left: 6px;
+}
+
+.ezu-lead {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.8;
+    margin: 0 0 1.2rem;
+}
+
+/* ===== کارت‌های آمار ===== */
+.ezu-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 1.2rem;
+}
+
+.ezu-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    transition: var(--transition);
+}
+
+.ezu-stat:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.ezu-stat .l {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: 0.3px;
+}
+
+.ezu-stat .v {
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ===== لینک‌های سریع ===== */
+.ezu-quick {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 1.2rem;
+}
+
+.ezu-quick a {
+    display: block;
+    padding: 14px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.ezu-quick a::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.ezu-quick a:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.ezu-quick a:hover::after {
+    opacity: 1;
+}
+
+.ezu-quick .t {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+}
+
+.ezu-quick .s {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ===== جدول ===== */
+.ezu-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+    border-radius: var(--radius-sm);
+}
+
+.ezu-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 460px;
+    font-size: 0.85rem;
+}
+
+.ezu-table th,
+.ezu-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border-light);
+    text-align: right;
+}
+
+.ezu-table th {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.ezu-table tr:hover td {
+    background: rgba(3, 31, 138, 0.02);
+}
+
+/* ===== نشان‌ها ===== */
+.ezu-badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.b-ok {
+    background: #ecfdf5;
+    color: var(--success);
+}
+
+.b-info {
+    background: rgba(3, 31, 138, 0.08);
+    color: var(--primary);
+}
+
+.b-warn {
+    background: #fff7ed;
+    color: var(--warning);
+}
+
+.b-bad {
+    background: #fef2f2;
+    color: var(--danger);
+}
+
+/* ===== دکمه‌ها ===== */
+.ezu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary);
+    color: #fff !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.ezu-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(3, 31, 138, 0.25);
+}
+
+.ezu-btn:active {
+    transform: scale(0.97);
+}
+
+.ezu-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ezu-btn-out {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--primary) !important;
+    border: 1.5px solid var(--primary);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.ezu-btn-out:hover {
+    background: var(--primary);
+    color: #fff !important;
+    transform: translateY(-2px);
+}
+
+.ezu-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--danger) !important;
+    border: 1px solid #fecaca;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.ezu-btn-danger:hover {
+    background: var(--danger);
+    color: #fff !important;
+    border-color: var(--danger);
+}
+
+.ezu-btn-wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #25d366;
+    color: #fff !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.ezu-btn-wa:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
+}
+
+.ezu-btn-wa svg {
+    width: 18px;
+    height: 18px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+}
+
+/* ===== آواتار و پروفایل ===== */
+.ezu-avatar-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.2rem;
+    transition: var(--transition);
+}
+
+.ezu-avatar-box:hover {
+    border-color: var(--primary);
+}
+
+.ezu-avatar-box img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--bg-card);
+    box-shadow: 0 0 0 3px rgba(3, 31, 138, 0.12), var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.ezu-avatar-box img:hover {
+    transform: scale(1.05);
+}
+
+.ezu-avatar-box .hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin: 4px 0 0;
+}
+
+.ezu-avatar-upload {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.ezu-avatar-upload .file-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.ezu-avatar-upload .file-wrap input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.ezu-avatar-upload .file-wrap .fake-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.ezu-avatar-upload .file-wrap .fake-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+/* ===== فرم‌ها ===== */
+.ezu-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ezu-field {
+    margin-bottom: 4px;
+}
+
+.ezu-field.full {
+    grid-column: 1 / -1;
+}
+
+.ezu-field label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.ezu-field input,
+.ezu-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.88rem;
+    min-height: 44px;
+    background: var(--bg-card);
+    transition: var(--transition);
+}
+
+.ezu-field input:focus,
+.ezu-field textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(3, 31, 138, 0.08);
+}
+
+.ezu-field input:disabled {
+    background: var(--bg-hover);
+    color: var(--text-muted);
+}
+
+/* ===== منوی پایین موبایل (اصلاح شده برای ۶ آیتم در یک خط) ===== */
+.ezu-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99990;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-light);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(3, 31, 138, 0.08);
+}
+
+.ezu-bottom-nav-inner {
+    max-width: 600px; /* افزایش عرض برای جا دادن ۶ آیتم */
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* تغییر از ۵ به ۶ ستون */
+    gap: 0; /* حذف فاصله برای فشرده‌تر شدن */
+}
+
+.ezu-bottom-nav button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 0; /* کاهش پدینگ عمودی */
+    color: var(--text-muted);
+    font-size: 0.52rem; /* کاهش فونت برای جا شدن ۶ آیتم */
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    min-height: 48px;
+    transition: var(--transition);
+}
+
+.ezu-bottom-nav button svg {
+    width: 20px; /* کاهش سایز آیکون */
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    transition: var(--transition);
+}
+
+.ezu-bottom-nav button.active {
+    color: var(--primary);
+}
+
+.ezu-bottom-nav button.active svg {
+    stroke: var(--primary);
+}
+
+.ezu-bottom-nav button:active {
+    transform: scale(0.92);
+}
+
+/* ============================================================
+   بخش پشتیبانی - طراحی مدرن و مینیمال
+   ============================================================ */
+.ezu-support-modern {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.ezu-support-modern .support-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    border: 1px solid var(--border-light);
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.ezu-support-modern .support-card:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.ezu-support-modern .support-card .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    background: rgba(3, 31, 138, 0.06);
+    color: var(--primary);
+}
+
+.ezu-support-modern .support-card .card-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ezu-support-modern .support-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+    color: var(--text-primary);
+}
+
+.ezu-support-modern .support-card .card-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.ezu-support-modern .support-card .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    padding: 3px 0;
+}
+
+.ezu-support-modern .support-card .contact-row strong {
+    min-width: 44px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.ezu-support-modern .support-card .contact-row a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.ezu-support-modern .support-card .contact-row a:hover {
+    color: var(--accent);
+}
+
+/* کارت واتساپ */
+.ezu-support-modern .support-card.whatsapp-card {
+    background: linear-gradient(145deg, #f0fdf4, #e6f9ed);
+    border-color: #bbf7d0;
+}
+
+.ezu-support-modern .support-card.whatsapp-card .card-icon {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.ezu-support-modern .support-card.whatsapp-card .btn-wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #25d366;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.ezu-support-modern .support-card.whatsapp-card .btn-wa:hover {
+    background: #1ebe5a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+}
+
+.ezu-support-modern .support-card.whatsapp-card .btn-wa svg {
+    width: 18px;
+    height: 18px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+}
+
+/* کارت چت */
+.ezu-support-modern .support-card.chat-card {
+    grid-column: 1 / -1;
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+.ezu-support-modern .support-card.chat-card .chat-form {
+    margin-top: 4px;
+}
+
+.ezu-support-modern .support-card.chat-card textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+    transition: var(--transition);
+    background: var(--bg-card);
+    min-height: 56px;
+}
+
+.ezu-support-modern .support-card.chat-card textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(3, 31, 138, 0.06);
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .file-wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .file-wrap .fake-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .file-wrap .fake-btn:hover {
+    background: var(--border-light);
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .file-wrap input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .btn-send {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 18px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .btn-send:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(3, 31, 138, 0.2);
+}
+
+.ezu-support-modern .support-card.chat-card .chat-actions .btn-send svg {
+    width: 18px;
+    height: 18px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages {
+    max-height: 180px;
+    overflow-y: auto;
+    margin-top: 12px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 12px;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages .msg-empty {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages .msg-user {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-sm);
+    text-align: left;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages .msg-admin {
+    background: var(--primary);
+    color: #fff;
+    padding: 6px 12px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-sm);
+    text-align: right;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages .msg-time {
+    font-size: 0.6rem;
+    opacity: 0.7;
+    display: block;
+    margin-top: 2px;
+}
+
+/* ===== تیکت‌های کاربر ===== */
+.user-ticket-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    transition: var(--transition);
+}
+
+.user-ticket-item:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-sm);
+}
+
+.user-ticket-item .ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.user-ticket-item .ticket-subject {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+}
+
+.user-ticket-item .ticket-status {
+    font-size: 0.7rem;
+    padding: 2px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.user-ticket-item .ticket-status.open {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.user-ticket-item .ticket-status.replied {
+    background: #dbeafe;
+    color: var(--primary);
+}
+
+.user-ticket-item .ticket-status.closed {
+    background: var(--bg-hover);
+    color: var(--text-muted);
+}
+
+.user-ticket-item .ticket-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+/* ===== نسخه‌پذیری ===== */
+@media (max-width: 1024px) {
+    .ezu-side {
+        flex: 0 1 220px;
+        max-width: 240px;
+    }
+}
+
+@media (max-width: 820px) {
+    .ezu {
+        padding: 12px;
+    }
+    
+    .ezu-layout {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .ezu-side {
+        flex: 1 1 auto;
+        max-width: 100%;
+        position: relative;
+        top: 0;
+        order: 2;
+    }
+    
+    .ezu-main {
+        flex: 1 1 auto;
+        order: 1;
+    }
+    
+    .ezu-nav-d {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 8px;
+    }
+    
+    .ezu-nav-d button,
+    .ezu-nav-d a {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+        gap: 6px;
+        justify-content: center;
+        text-align: center;
+        min-height: 40px;
+    }
+    
+    .ezu-nav-d .label {
+        white-space: normal;
+        font-size: 0.7rem;
+    }
+    
+    .ezu-nav-d .icon svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .ezu-user {
+        padding: 16px;
+    }
+    
+    .ezu-av {
+        width: 72px !important;
+        height: 72px !important;
+    }
+    
+    .ezu-side .shop-btn {
+        margin: 6px 8px 10px;
+        font-size: 0.78rem;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    .ezu {
+        padding: 8px;
+    }
+    
+    .ezu-m-head {
+        display: flex;
+    }
+    
+    .ezu-bottom-nav {
+        display: block;
+    }
+    
+    .ezu-main {
+        padding: 14px;
+        border-radius: var(--radius-md);
+        margin-bottom: 70px;
+    }
+    
+    .ezu-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .ezu-quick {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .ezu-form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .ezu-support-modern {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .ezu-support-modern .support-card.chat-card {
+        grid-column: 1;
+    }
+    
+    .ezu-support-modern .support-card {
+        padding: 14px 16px;
+    }
+    
+    .ezu-nav-d {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3px;
+    }
+    
+    .ezu-nav-d button,
+    .ezu-nav-d a {
+        font-size: 0.72rem;
+        padding: 6px 8px;
+        min-height: 36px;
+    }
+    
+    .ezu-nav-d .logout {
+        grid-column: 1 / -1;
+        border-top: 1px solid var(--border-light);
+        margin-top: 2px;
+        padding-top: 8px;
+    }
+    
+    .ezu-avatar-box {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 14px;
+    }
+    
+    .ezu-avatar-upload {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 400px) {
+    .ezu-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+    
+    .ezu-stat {
+        padding: 10px 12px;
+    }
+    
+    .ezu-stat .v {
+        font-size: 0.95rem;
+    }
+    
+    .ezu-title {
+        font-size: 1rem;
+    }
+    
+    .ezu-support-modern .support-card.whatsapp-card .btn-wa {
+        font-size: 0.75rem;
+        padding: 6px 14px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .ezu {
+        padding: 24px 32px;
+    }
+    
+    .ezu-side {
+        flex: 0 1 300px;
+        max-width: 320px;
+    }
+}
+
+/* ===== اسکرول بار ===== */
+.ezu-support-modern .support-card.chat-card .chat-messages::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 999px;
+}
+
+.ezu-support-modern .support-card.chat-card .chat-messages::-webkit-scrollbar-thumb:hover {
+    background: var(--border-dark);
+}
+
+/* ===== رفع تداخل استایل‌ها ===== */
+.ezu-layout {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+}
+.ezu-side {
+    flex: 0 1 260px !important;
+    max-width: 280px !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px rgba(3, 31, 138, 0.08) !important;
+    border: 1px solid #eef2f6 !important;
+}
+.ezu-main {
+    flex: 1 1 480px !important;
+    min-width: 0 !important;
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 16px rgba(3, 31, 138, 0.08) !important;
+    border: 1px solid #eef2f6 !important;
+    padding: 20px !important;
+}
+.ezu-tab {
+    display: none;
+}
+.ezu-tab.active {
+    display: block !important;
+}
+.ezu-nav-d button {
+    width: 100% !important;
+    text-align: right !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    padding: 10px 14px !important;
+    border-radius: 8px !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+.ezu-nav-d button.active {
+    background: #031f8a !important;
+    color: #fff !important;
+}
+
+/* ============================================================
+   رفع تداخل استایل‌های ووکامرس / وودمارت در پنل کاربری
+   ============================================================ */
+
+/* ۱. دکمه‌ها - رفع تداخل با پس‌زمینه و تعریف رنگ اختصاصی */
+.ezu .ezu-btn,
+.ezu .woocommerce a.button,
+.ezu .woocommerce button.button,
+.ezu .woocommerce input.button,
+.ezu .wc-proceed-to-checkout a.checkout-button,
+.ezu .woocommerce #place_order,
+.ezu .woocommerce .button {
+    background-color: #031f8a !important; /* رنگ اصلی برند */
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    font-weight: 700 !important;
+    font-family: inherit !important;
+    box-shadow: 0 2px 4px rgba(3, 31, 138, 0.1) !important;
+}
+
+/* هاور دکمه‌ها */
+.ezu .ezu-btn:hover,
+.ezu .woocommerce a.button:hover,
+.ezu .woocommerce button.button:hover,
+.ezu .woocommerce input.button:hover,
+.ezu .wc-proceed-to-checkout a.checkout-button:hover,
+.ezu .woocommerce #place_order:hover,
+.ezu .woocommerce .button:hover {
+    background-color: #1a3a9e !important; /* رنگ روشن‌تر برای هاور */
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(3, 31, 138, 0.2) !important;
+}
+
+/* ۲. جداول سبد خرید و سفارش‌ها */
+.ezu .woocommerce table.shop_table {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+    background: #ffffff !important;
+}
+.ezu .woocommerce table.shop_table th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    padding: 12px 16px !important;
+    font-weight: 700 !important;
+}
+.ezu .woocommerce table.shop_table td {
+    padding: 12px 16px !important;
+    border-top: 1px solid #eef2f6 !important;
+    color: #0f172a !important;
+}
+
+/* ۳. فرم‌های ورودی (سبد خرید، آدرس و پروفایل) */
+.ezu .woocommerce form .form-row input.input-text,
+.ezu .woocommerce form .form-row textarea,
+.ezu input[type="text"],
+.ezu input[type="tel"],
+.ezu input[type="email"],
+.ezu input[type="password"],
+.ezu textarea,
+.ezu select {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    font-family: inherit !important;
+    font-size: 0.88rem !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    min-height: 44px !important;
+    box-shadow: none !important;
+}
+
+/* فوکوس فرم‌ها */
+.ezu .woocommerce form .form-row input.input-text:focus,
+.ezu input[type="text"]:focus,
+.ezu input[type="tel"]:focus,
+.ezu input[type="email"]:focus,
+.ezu input[type="password"]:focus,
+.ezu textarea:focus,
+.ezu select:focus {
+    outline: none !important;
+    border-color: #031f8a !important;
+    box-shadow: 0 0 0 3px rgba(3, 31, 138, 0.08) !important;
+}
+
+/* ۴. پیام‌های سیستم ووکامرس */
+.ezu .woocommerce-message,
+.ezu .woocommerce-info,
+.ezu .woocommerce-error {
+    background-color: #f8fafc !important;
+    border-top: 3px solid #031f8a !important;
+    color: #0f172a !important;
+    border-radius: 8px !important;
+    padding: 12px 16px !important;
+}
+.ezu .woocommerce-error {
+    border-top-color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+}
+
+/* ۵. اصلاح آیکون‌های حذف و دکمه‌های کوچک در سبد خرید وودمارت */
+.ezu .woocommerce-cart-form__contents td.product-remove a.remove {
+    color: #dc2626 !important;
+    background: #fef2f2 !important;
+    border-radius: 50% !important;
+    width: 24px !important;
+    height: 24px !important;
+    line-height: 24px !important;
+}
+.ezu .woocommerce-cart-form__contents td.product-remove a.remove:hover {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+/* ۶. استایل داشبورد ووکامرس (اگر به جای تب‌های اختصاصی از پیش‌فرض استفاده می‌کند) */
+.ezu .woocommerce-MyAccount-navigation ul {
+    list-style: none !important;
+    padding: 0 !important;
+}
+.ezu .woocommerce-MyAccount-navigation ul li a {
+    display: block !important;
+    padding: 10px 14px !important;
+    border-radius: 8px !important;
+    color: #475569 !important;
+    background: #f8fafc !important;
+    margin-bottom: 4px !important;
+    border: 1px solid #e2e8f0 !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+}
+.ezu .woocommerce-MyAccount-navigation ul li.is-active a {
+    background: #031f8a !important;
+    color: #ffffff !important;
+    border-color: #031f8a !important;
+}
+
+/* ۷. لینک‌های عمومی داخل پنل */
+.ezu a {
+    color: #031f8a !important;
+    text-decoration: none !important;
+}
+.ezu a:hover {
+    color: #1a3a9e !important;
+}
+
+/* ============================================================
+   استایل ریسپانسیو و کارتی سبد خرید (اصلاح نهایی)
+   ============================================================ */
+
+/* مخفی کردن دکمه‌های حذف تکراری */
+.woocommerce table.shop_table td.product-name a.remove,
+.woocommerce table.shop_table td.product-thumbnail a.remove {
+    display: none !important;
+}
+
+/* دسکتاپ (بالای 1024px) - جدول کامل */
+@media (min-width: 1025px) {
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart {
+        width: 100% !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart thead {
+        display: table-header-group !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart thead th {
+        background: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        padding: 14px !important;
+        text-align: center !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td {
+        padding: 15px !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-thumbnail img {
+        width: 70px !important;
+        height: 70px !important;
+        border-radius: 8px !important;
+    }
+}
+
+/* تبلت (بین 768px تا 1024px) - جدول فشرده */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart thead {
+        display: none !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tbody tr.cart_item {
+        display: grid !important;
+        grid-template-columns: 70px 1fr 100px 100px !important;
+        grid-template-areas:
+            "img name price qty"
+            "img name subtotal qty" !important;
+        align-items: center !important;
+        background: #fff !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 10px !important;
+        position: relative !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td::before {
+        display: none !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-thumbnail {
+        grid-area: img !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-thumbnail img {
+        width: 70px !important;
+        height: 70px !important;
+        border-radius: 8px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-name {
+        grid-area: name !important;
+        text-align: right !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-price,
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-subtotal {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        color: #031f8a !important;
+        text-align: center !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity {
+        grid-area: qty !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity {
+        display: inline-flex !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity .minus,
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity .plus {
+        width: 26px !important;
+        height: 26px !important;
+        background: #f8fafc !important;
+        border: none !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity input.qty {
+        width: 30px !important;
+        height: 26px !important;
+        border: none !important;
+        border-left: 1px solid #e2e8f0 !important;
+        border-right: 1px solid #e2e8f0 !important;
+        text-align: center !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-remove {
+        position: absolute !important;
+        top: 8px !important;
+        left: 8px !important;
+    }
+}
+
+/* موبایل (کمتر از 768px) - چیدمان کارتی عمودی */
+@media (max-width: 767px) {
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart thead {
+        display: none !important;
+    }
+    
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tbody tr.cart_item {
+        display: flex !important;
+        flex-direction: column !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        margin-bottom: 15px !important;
+        position: relative !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03) !important;
+    }
+
+    /* مخفی کردن لیبل‌ها */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td::before {
+        display: none !important;
+    }
+
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        text-align: center !important;
+    }
+
+    /* 1. عکس (بالا) */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-thumbnail {
+        order: 1 !important;
+        margin-bottom: 12px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-thumbnail img {
+        width: 120px !important;
+        height: 120px !important;
+        object-fit: cover !important;
+        border-radius: 10px !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+
+    /* 2. عنوان (زیر عکس) */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-name {
+        order: 2 !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        line-height: 1.5 !important;
+        margin-bottom: 12px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-name a {
+        color: #0f172a !important;
+        text-decoration: none !important;
+    }
+
+    /* 3. قیمت و جمع جزء (زیر عنوان) */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-price,
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-subtotal {
+        order: 3 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background: #f8fafc !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 8px !important;
+        font-size: 13px !important;
+        font-weight: 800 !important;
+        color: #031f8a !important;
+    }
+
+    /* 4. تعداد (زیر قیمت) */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity {
+        order: 4 !important;
+        margin-bottom: 8px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity {
+        display: inline-flex !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity .minus,
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity .plus {
+        background: #f8fafc !important;
+        border: none !important;
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 15px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-quantity .quantity input.qty {
+        width: 40px !important;
+        height: 30px !important;
+        border: none !important;
+        border-left: 1px solid #e2e8f0 !important;
+        border-right: 1px solid #e2e8f0 !important;
+        text-align: center !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+    }
+
+    /* 5. دکمه حذف (گوشه کارت) */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-remove {
+        position: absolute !important;
+        top: 10px !important;
+        left: 10px !important;
+        order: 5 !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-remove a.remove {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 16px !important;
+        line-height: 24px !important;
+        border-radius: 50% !important;
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+        border: 1px solid #fecaca !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart td.product-remove a.remove:hover {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+    }
+
+    /* دکمه‌های پایین (کد تخفیف و بروزرسانی) */
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tr.wd-cart-action-row td.actions {
+        display: block !important;
+        background: transparent !important;
+        padding: 20px 0 !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tr.wd-cart-action-row td.actions .cart-actions {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tr.wd-cart-action-row td.actions .coupon {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tr.wd-cart-action-row td.actions .coupon input#coupon_code {
+        width: 100% !important;
+        height: 42px !important;
+        border-radius: 8px !important;
+    }
+    .ezu .woocommerce table.shop_table.shop_table_responsive.cart tr.wd-cart-action-row td.actions button.button {
+        width: 100% !important;
+        height: 42px !important;
+        border-radius: 8px !important;
+    }
+}
+/* ============================================================
+   استایل اختصاصی فرم کد تخفیف و پیام‌های ووکامرس
+   ============================================================ */
+
+/* ۱. مرتب‌سازی کامل فرم کد تخفیف */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: #f8fafc !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* استایل ورودی کد تخفیف */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input#coupon_code {
+    flex: 1 !important;
+    min-width: 120px !important;
+    height: 42px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+/* استایل دکمه اعمال کد تخفیف */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button,
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input.button {
+    background-color: #031f8a !important;
+    color: #ffffff !important;
+    border: none !important;
+    height: 42px !important;
+    padding: 0 20px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button:hover {
+    background-color: #1a3a9e !important;
+}
+
+/* ۲. مرتب‌سازی پیام‌های ووکامرس (سفارش‌ها و تایید ایمیل) */
+.ezu .woocommerce-message,
+.ezu .woocommerce-info,
+.ezu .woocommerce-orders-table__message {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 14px 16px !important;
+    color: #0f172a !important;
+    font-size: 14px !important;
+    margin-bottom: 15px !important;
+}
+
+/* دکمه‌های داخل پیام‌ها (مثل تایید ایمیل و مرور محصولات) */
+.ezu .woocommerce-message a.button,
+.ezu .woocommerce-info a.button,
+.ezu .woocommerce-orders-table__message a.button {
+    background-color: #031f8a !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+    margin: 0 !important;
+    display: inline-block !important;
+}
+
+.ezu .woocommerce-message a.button:hover,
+.ezu .woocommerce-info a.button:hover {
+    background-color: #1a3a9e !important;
+}
+
+/* حذف دایره‌های اضافی قبلی */
+.ezu .woocommerce-message::before,
+.ezu .woocommerce-info::before,
+.ezu .woocommerce-orders-table__message::before {
+    display: none !important;
+    content: none !important;
+}
+@media (max-width: 768px) {
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input#coupon_code {
+        width: 100% !important;
+    }
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button {
+        width: 100% !important;
+    }
+}
+/* ============================================================
+   بازنویسی کامل و اختصاصی فرم کد تخفیف (غلبه بر وودمارت)
+   ============================================================ */
+
+/* ظرف اصلی کد تخفیف */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form,
+.woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* اینپوت کد تخفیف */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input#coupon_code,
+.woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input#coupon_code {
+    flex: 1 !important;
+    height: 42px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 0 12px !important;
+    font-size: 14px !important;
+    color: #0f172a !important;
+    background: #f8fafc !important;
+    width: auto !important;
+    box-shadow: none !important;
+    min-width: 0 !important;
+}
+
+/* دکمه اعمال کد تخفیف - حذف حالت قرمز و تمام عرض وودمارت */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button,
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.btn-accent,
+.woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button,
+.woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.btn-accent {
+    background-color: #031f8a !important; /* رنگ سرمه‌ای برند */
+    color: #ffffff !important;
+    border: none !important;
+    height: 42px !important;
+    width: auto !important;
+    padding: 0 24px !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    transition: all 0.3s ease !important;
+    line-height: 1 !important;
+}
+
+/* هاور دکمه */
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button:hover,
+.ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.btn-accent:hover,
+.woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button:hover,
+.woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.btn-accent:hover {
+    background-color: #1a3a9e !important;
+    color: #ffffff !important;
+}
+
+/* موبایل: برای صفحه‌های خیلی کوچک فقط عمودی شود */
+@media (max-width: 480px) {
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form,
+    .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input#coupon_code,
+    .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form input#coupon_code {
+        width: 100% !important;
+    }
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button,
+    .ezu .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.btn-accent,
+    .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.button,
+    .woocommerce form.woocommerce-cart-form .coupon.wd-coupon-form button.btn-accent {
+        width: 100% !important;
+    }
+}
+/* ============================================================
+   استایل حرفه‌ای و مینیمال کارت واتساپ (جدید)
+   ============================================================ */
+
+/* ظاهر کلی کارت */
+.ezu-support-modern .support-card.whatsapp-card {
+    background: linear-gradient(145deg, #f0fdf4, #dcfce7) !important;
+    border: 1.5px solid #bbf7d0 !important;
+    box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 24px 20px !important;
+    text-align: center !important;
+    transition: all 0.3s ease !important;
+}
+
+/* هاور کارت */
+.ezu-support-modern .support-card.whatsapp-card:hover {
+    box-shadow: 0 8px 24px rgba(5, 150, 105, 0.15) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* آیکون واتساپ (توپُر سبز) */
+.ezu-support-modern .support-card.whatsapp-card .card-icon {
+    background: #25d366 !important;
+    color: #ffffff !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    margin: 0 auto 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35) !important;
+}
+
+/* عنوان و توضیحات */
+.ezu-support-modern .support-card.whatsapp-card h4 {
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    color: #065f46 !important;
+    margin-bottom: 6px !important;
+}
+
+.ezu-support-modern .support-card.whatsapp-card .card-desc {
+    font-size: 0.85rem !important;
+    color: #047857 !important;
+    margin-bottom: 16px !important;
+}
+
+/* دکمه واتساپ (تمام عرض، تمیز و مدرن) */
+.ezu-support-modern .support-card.whatsapp-card .btn-wa {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    background: #25d366 !important;
+    color: #ffffff !important;
+    width: 100% !important;
+    padding: 12px 20px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    border: none !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* هاور دکمه واتساپ */
+.ezu-support-modern .support-card.whatsapp-card .btn-wa:hover {
+    background: #1ebe5a !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.35) !important;
+}
+
+/* تنظیم سایز آیکون داخل دکمه */
+.ezu-support-modern .support-card.whatsapp-card .btn-wa svg {
+    width: 22px !important;
+    height: 22px !important;
+    fill: #ffffff !important;
+    stroke: none !important;
+}

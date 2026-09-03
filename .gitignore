@@ -1,0 +1,35 @@
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+
+# WordPress local files
+wp-config.php
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Dependencies
+node_modules/
+
+# Build/cache
+dist/
+build/
+.cache/
+
+# Archives
+*.zip

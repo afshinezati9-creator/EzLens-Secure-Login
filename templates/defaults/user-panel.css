@@ -1,0 +1,61 @@
+/* ============================================================
+   استایل‌های پیش‌فرض پنل کاربری
+   ============================================================ */
+.ezu {
+    --blue: #2b6cb0;
+    --blue2: #2c5282;
+    --card: #fff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --radius: 16px;
+    --shadow: 0 12px 32px -16px rgba(43,108,176,0.12);
+    font-family: IRANYekan, Tahoma, Arial, sans-serif;
+    max-width: 1500px;
+    margin: 0 auto;
+    direction: rtl;
+}
+.ezu-m-head { display: none; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; }
+.ezu-m-head .back { display: inline-flex; align-items: center; gap: 6px; background: var(--blue); color: #fff; font-weight: 700; padding: 10px 14px; border-radius: 10px; text-decoration: none; }
+.ezu-m-head .who { display: flex; align-items: center; gap: 10px; }
+.ezu-m-head img { width: 44px; height: 44px; border-radius: 50%; }
+.ezu-layout { display: flex; flex-wrap: wrap; gap: 18px; }
+.ezu-side { flex: 0 1 260px; max-width: 280px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; align-self: flex-start; position: sticky; top: 90px; }
+.ezu-user { padding: 20px 16px; text-align: center; border-bottom: 1px solid var(--border); }
+.ezu-av { width: 90px; height: 90px; border-radius: 50%; margin: 0 auto 12px; border: 4px solid #fff; }
+.ezu-name { font-size: 1.02rem; font-weight: 700; }
+.ezu-mail { font-size: .76rem; color: var(--muted); }
+.ezu-nav-d { list-style: none; margin: 0; padding: 8px; }
+.ezu-nav-d button {
+    width: 100%; text-align: right; border: none; background: transparent;
+    cursor: pointer; padding: 12px 14px; border-radius: 12px;
+    font-family: inherit; color: var(--muted); font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+}
+.ezu-nav-d button:hover { background: rgba(43,108,176,0.05); color: var(--blue); }
+.ezu-nav-d button.active { background: var(--blue); color: #fff; }
+.ezu-nav-d .logout { color: #e53e3e; border-top: 1px solid var(--border); margin-top: 6px; padding-top: 14px; }
+.ezu-main { flex: 1 1 480px; min-width: 0; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
+.ezu-tab { display: none; }
+.ezu-tab.active { display: block; }
+.ezu-title { font-size: 1.1rem; font-weight: 700; color: var(--blue); margin: 0 0 .8rem; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.ezu-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1rem; }
+.ezu-stat { border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: #fff; }
+.ezu-stat .l { font-size: .7rem; color: var(--muted); font-weight: 600; margin: 0 0 4px; }
+.ezu-stat .v { font-size: 1rem; font-weight: 700; margin: 0; }
+.ezu-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ezu-chart { border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+.ezu-chart h4 { margin: 0 0 8px; font-size: .9rem; font-weight: 700; color: var(--blue); }
+.ezu-chart-wrap { height: 180px; position: relative; }
+.ezu-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 99990; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); border-top: 1px solid var(--border); padding: 6px 4px; }
+.ezu-bottom-nav-inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(5,1fr); gap: 2px; }
+.ezu-bottom-nav button { border: none; background: transparent; cursor: pointer; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; color: var(--muted); font-size: .6rem; font-weight: 600; border-radius: 10px; min-height: 48px; }
+.ezu-bottom-nav button.active { color: var(--blue); background: rgba(43,108,176,0.06); }
+@media (max-width: 900px) {
+    .ezu-m-head { display: flex; }
+    .ezu-side { display: none !important; }
+    .ezu-bottom-nav { display: block; }
+    .ezu-stats { grid-template-columns: repeat(2,1fr); }
+    .ezu-charts { grid-template-columns: 1fr; }
+}

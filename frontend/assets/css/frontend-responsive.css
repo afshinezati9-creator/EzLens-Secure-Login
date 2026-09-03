@@ -1,0 +1,105 @@
+/* ============================================================
+   EzLens Secure Login - Responsive Styles
+   تنظیمات واکنش‌گرا برای همه صفحات
+   ============================================================ */
+
+/* تبلت‌های کوچک و موبایل‌های بزرگ */
+@media (max-width: 1024px) {
+    .ezu-stats { grid-template-columns: repeat(2,1fr); }
+}
+
+@media (max-width: 900px) {
+    .ezu-m-head { display: flex; }
+    .ezu-side { display: none !important; }
+    .ezu-main { border-radius: 14px; }
+    .ezu-main-pad { padding-bottom: calc(var(--nav-h) + 18px); }
+    .ezu-bottom-nav { display: block; }
+    .ezu-form-grid { grid-template-columns: 1fr; }
+    .ezu-quick { grid-template-columns: 1fr; }
+    .ezu-btn, .ezu-btn-out, .ezu-btn-wa, .ezu-btn-danger {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+    .ezu-title .ezu-btn-out { width: auto; }
+    .ezu-cart-item { flex-wrap: wrap; }
+    .ezu-prescription-item { flex-wrap: wrap; gap: 8px; }
+    .ezu-prescription-item .actions { width: 100%; justify-content: flex-start; }
+}
+
+@media (max-width: 768px) {
+    .admin-auth-wrap {
+        padding: 16px;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    }
+    .admin-auth-card {
+        padding: 24px 18px 20px;
+        border-radius: 24px;
+    }
+    .admin-auth-card h2 { font-size: 22px; }
+    .admin-auth-back { width: 60%; padding: 8px 16px; font-size: 13px; }
+    .admin-auth-extra {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* ورود مشتری */
+    .min-auth-wrapper {
+        padding: 20px 16px;
+        border-radius: 22px;
+        margin: 12px auto;
+    }
+    .min-auth-wrapper .min-auth-logo h1 { font-size: 20px; }
+    .min-auth-wrapper .min-auth-tab { font-size: 13px; padding: 8px 0; }
+    .min-auth-wrapper .min-auth-captcha { gap: 4px; padding: 8px 10px; }
+    .min-auth-wrapper .min-auth-captcha .captcha-numbers { font-size: 16px; }
+    .min-auth-wrapper .min-auth-captcha .captcha-input { max-width: 56px; font-size: 14px; min-height: 34px; }
+    .min-auth-wrapper .min-auth-input-group input { font-size: 14px; padding: 10px 12px; min-height: 44px; }
+    .min-auth-wrapper .min-auth-btn { font-size: 15px; min-height: 48px; padding: 12px; }
+    .min-auth-forgot-box { padding: 20px 16px; }
+    .min-auth-forgot-box h3 { font-size: 18px; }
+
+    /* ورود مدیر */
+    .admin-auth-wrap { padding: 12px; min-height: 100vh; background: #f8fafc; }
+    .admin-auth-container { max-width: 100%; }
+    .admin-auth-card {
+        padding: 20px 16px 18px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(12px);
+    }
+    .admin-auth-card h2 { font-size: 20px; }
+    .admin-auth-captcha { padding: 8px 10px; gap: 4px; border-radius: 12px; }
+    .admin-auth-captcha .captcha-label { font-size: 12px; }
+    .admin-auth-captcha .captcha-numbers { font-size: 15px; }
+    .admin-auth-captcha .captcha-numbers span { padding: 2px 6px; min-width: 20px; }
+    .admin-auth-captcha .captcha-input { max-width: 56px; min-height: 34px; font-size: 14px; padding: 4px 4px; }
+    .admin-auth-captcha .captcha-reload { width: 32px; height: 32px; }
+    .admin-auth-btn { font-size: 15px; min-height: 46px; padding: 12px; border-radius: 12px; }
+    .admin-auth-back { width: 70%; padding: 8px 14px; font-size: 13px; border-radius: 10px; }
+
+    /* پنل کاربری */
+    .ezu-stats { grid-template-columns: 1fr; }
+    .ezu-bottom-nav button { font-size: .55rem; }
+    .ezu-form-grid { grid-template-columns: 1fr; }
+    .ezu-quick { grid-template-columns: 1fr; }
+    .ezu-avatar-box { flex-direction: column; align-items: center; text-align: center; }
+    .ezu-avatar-upload { justify-content: center; }
+}
+
+@media (max-width: 380px) {
+    .min-auth-wrapper { padding: 16px 12px; }
+    .min-auth-wrapper .min-auth-captcha .captcha-label { font-size: 12px; }
+    .min-auth-wrapper .min-auth-captcha .captcha-numbers span { padding: 2px 6px; min-width: 22px; font-size: 14px; }
+    .min-auth-wrapper .min-auth-captcha .captcha-input { max-width: 48px; font-size: 13px; }
+    .min-auth-wrapper .min-auth-tab { font-size: 12px; padding: 6px 0; }
+
+    .admin-auth-card { padding: 16px 12px 14px; border-radius: 18px; }
+    .admin-auth-card h2 { font-size: 18px; }
+    .admin-auth-captcha .captcha-input { max-width: 48px; min-height: 30px; font-size: 13px; }
+    .admin-auth-back { width: 80%; padding: 6px 12px; font-size: 12px; }
+}

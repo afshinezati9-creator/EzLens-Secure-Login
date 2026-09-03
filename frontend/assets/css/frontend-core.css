@@ -1,0 +1,52 @@
+/* ============================================================
+   EzLens Secure Login - Core Styles
+   متغیرها، ریست و استایل‌های پایه
+   ============================================================ */
+
+:root {
+    --ezlens-primary: #2b6cb0;
+    --ezlens-primary-hover: #2c5282;
+    --ezlens-success: #38a169;
+    --ezlens-danger: #e53e3e;
+    --ezlens-warning: #d69e2e;
+    --ezlens-bg: #f7fafc;
+    --ezlens-card: #ffffff;
+    --ezlens-border: #e2e8f0;
+    --ezlens-text: #1a202c;
+    --ezlens-muted: #718096;
+    --ezlens-radius: 14px;
+    --ezlens-shadow: 0 8px 40px rgba(0,0,0,0.06);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: IRANYekan, Tahoma, Arial, sans-serif;
+    background: #f1f5f9;
+}
+
+/* ===== انیمیشن‌های مشترک ===== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== استایل‌های مشترک ===== */
+.ezu * { box-sizing: border-box; }
+.min-auth-wrapper * { box-sizing: border-box; }
+.admin-auth-wrap * { box-sizing: border-box; }
