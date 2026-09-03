@@ -36,6 +36,13 @@ class EzLens_Product_Options_Install {
 
 EzLens_Product_Options_Install::get_instance();
 
+// Product Options services depend on the legacy-compatible global Template Manager facade.
+// Load it defensively here so this module is safe regardless of bootstrap order.
+$ezlens_template_manager = EZLAUTH_MODULES_DIR . 'product-options/class-template-manager.php';
+if (!class_exists('EzLens_Product_Options_Template_Manager') && is_readable($ezlens_template_manager)) {
+    require_once $ezlens_template_manager;
+}
+
 $ezlens_pricing_engine = EZLAUTH_MODULES_DIR . 'product-options/class-pricing-engine.php';
 if (is_readable($ezlens_pricing_engine)) require_once $ezlens_pricing_engine;
 
