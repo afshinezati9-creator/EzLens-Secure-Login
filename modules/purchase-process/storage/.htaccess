@@ -1,0 +1,5 @@
+# modules/purchase-process/storage/.htaccess
+<Files "*.php">
+    Order Deny,Allow
+    Deny from all
+</Files>

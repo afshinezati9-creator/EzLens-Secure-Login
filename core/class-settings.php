@@ -1,7 +1,7 @@
 <?php
 /**
  * کلاس مدیریت تنظیمات پلاگین با کش (فاز ۵ - نسخه کامل با کش‌شکنی)
- * @version 2.3.4
+ * @version 2.3.5 – اضافه شدن تنظیمات Product Options
  */
 class EzLens_Auth_Settings {
 
@@ -140,6 +140,15 @@ class EzLens_Auth_Settings {
             'api_key'               => '',
             'enable_api'            => '1',
             'tracking_base_url'     => 'https://tracking.post.ir/?id=',
+
+            // ===== ✨ تنظیمات جدید ماژول ویژگی‌های محصول =====
+            'product_options_enabled'           => '1',
+            'product_options_max_upload_size'   => '5',
+            'product_options_allowed_extensions'=> 'jpg,jpeg,png,pdf',
+            'product_options_show_title'        => '1',
+            'product_options_show_price_in_cart'=> '1',
+            'product_options_default_layout'    => '1',
+            'product_options_required_fields'   => '1',
         ];
     }
 
@@ -202,21 +211,14 @@ class EzLens_Auth_Settings {
      * پاک‌سازی کش تنظیمات (نسخه کامل)
      */
     public static function clear_cache() {
-        // پاک‌سازی کش اصلی
         wp_cache_delete(self::$cache_key, 'ezlens');
         self::$cached_settings = null;
-        
-        // پاک‌سازی کش‌های مرتبط با تنظیمات لاگین
         wp_cache_delete('ezlens_login_settings', 'ezlens');
-        
-        // پاک‌سازی کش‌های صفحه‌ها
         $sections = ['customer-login', 'lost-password', 'user-panel', 'admin-login'];
         foreach ($sections as $section) {
             wp_cache_delete('ezlens_page_title_' . $section, 'ezlens');
             wp_cache_delete('ezlens_page_subtitle_' . $section, 'ezlens');
         }
-        
-        // پاک‌سازی کش‌های آماری
         wp_cache_delete('ezlens_dashboard_stats', 'ezlens');
         wp_cache_delete('ezlens_recent_users_20', 'ezlens');
     }
@@ -242,34 +244,23 @@ class EzLens_Auth_Settings {
     public static function set_page_setting($section, $setting, $value) {
         $key = 'page_' . $setting . '_' . $section;
         update_option('ezlens_auth_' . $key, $value);
-        // پاک‌سازی کش مربوطه
         wp_cache_delete('ezlens_page_' . $setting . '_' . $section, 'ezlens');
         self::clear_cache();
     }
 
-    /**
-     * دریافت عنوان صفحه با کش
-     */
     public static function get_page_title($section) {
         $cache_key = 'ezlens_page_title_' . $section;
         $title = wp_cache_get($cache_key, 'ezlens');
-        if ($title !== false) {
-            return $title;
-        }
+        if ($title !== false) return $title;
         $title = self::get_page_setting($section, 'title') ?: self::get_default_page_title($section);
         wp_cache_set($cache_key, $title, 'ezlens', 300);
         return $title;
     }
 
-    /**
-     * دریافت زیرنویس صفحه با کش
-     */
     public static function get_page_subtitle($section) {
         $cache_key = 'ezlens_page_subtitle_' . $section;
         $subtitle = wp_cache_get($cache_key, 'ezlens');
-        if ($subtitle !== false) {
-            return $subtitle;
-        }
+        if ($subtitle !== false) return $subtitle;
         $subtitle = self::get_page_setting($section, 'subtitle') ?: self::get_default_page_subtitle($section);
         wp_cache_set($cache_key, $subtitle, 'ezlens', 300);
         return $subtitle;
@@ -314,37 +305,21 @@ class EzLens_Auth_Settings {
         }
         return $role;
     }
-    
-    /**
-     * دریافت تنظیمات لاگین با کش جداگانه (برای عملکرد بهتر)
-     */
+
     public static function get_login_settings() {
         $cache_key = 'ezlens_login_settings';
         $settings = wp_cache_get($cache_key, 'ezlens');
-        if ($settings !== false) {
-            return $settings;
-        }
-        
+        if ($settings !== false) return $settings;
         $all = self::get_all();
         $keys = [
-            'enable_otp_login',
-            'enable_manual_login', 
-            'enable_registration',
-            'enable_forgot_password',
-            'captcha_for_otp_login',
-            'otp_expiry_minutes',
-            'primary_color',
-            'button_color',
-            'bg_color',
-            'logo_url',
-            'font_family',
+            'enable_otp_login', 'enable_manual_login', 'enable_registration',
+            'enable_forgot_password', 'captcha_for_otp_login', 'otp_expiry_minutes',
+            'primary_color', 'button_color', 'bg_color', 'logo_url', 'font_family',
         ];
-        
         $settings = [];
         foreach ($keys as $key) {
             $settings[$key] = $all[$key] ?? null;
         }
-        
         wp_cache_set($cache_key, $settings, 'ezlens', 300);
         return $settings;
     }

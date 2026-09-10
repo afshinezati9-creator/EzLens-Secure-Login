@@ -1,0 +1,787 @@
+/* EzLens Product Options — Phase 2 frontend */
+.ezlens-po-root {
+  direction: rtl;
+  font-family: Vazirmatn, Tahoma, sans-serif;
+  margin: 12px 0 16px;
+  color: #0f172a;
+}
+.ezlens-po-placement-gallery_side {
+  max-width: 100%;
+}
+.ezlens-po-placement-full_width {
+  width: 100%;
+  margin: 20px 0;
+}
+.ezlens-po-slot {
+  margin-bottom: 14px;
+}
+.ezlens-po-slot-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: #0f172a;
+}
+.ezlens-po-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ezlens-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ezlens-field-wrapper label.ezlens-field-label,
+.ezlens-field-wrapper > label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+.ezlens-field-wrapper .required {
+  color: #dc2626;
+}
+.ezlens-field-input,
+.ezlens-field-wrapper select,
+.ezlens-field-wrapper textarea,
+.ezlens-field-wrapper input[type="text"],
+.ezlens-field-wrapper input[type="email"],
+.ezlens-field-wrapper input[type="tel"],
+.ezlens-field-wrapper input[type="number"],
+.ezlens-field-wrapper input[type="date"],
+.ezlens-field-wrapper input[type="time"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #0f172a;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.ezlens-field-wrapper input:focus,
+.ezlens-field-wrapper select:focus,
+.ezlens-field-wrapper textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+.ezlens-field-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.ezlens-radio-group,
+.ezlens-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ezlens-radio-label,
+.ezlens-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+}
+.ezlens-image-select {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.ezlens-field-heading {
+  margin: 4px 0;
+  font-size: 15px;
+}
+.ezlens-upload-wrapper input[type="file"] {
+  font-size: 13px;
+}
+.ezlens-upload-progress {
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+  display: none;
+}
+.ezlens-upload-progress.is-active {
+  display: block;
+}
+.ezlens-upload-progress .progress-bar {
+  height: 100%;
+  width: 0;
+  background: #3b82f6;
+  transition: width 0.2s;
+}
+
+/* Accordion */
+.ezlens-po-display-accordion .ezlens-po-acc-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+}
+.ezlens-po-display-accordion .ezlens-po-acc-toggle[aria-expanded="true"] {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+.ezlens-po-display-accordion .ezlens-po-acc-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+.ezlens-po-display-accordion .ezlens-po-acc-toggle[aria-expanded="true"] .ezlens-po-acc-icon {
+  transform: rotate(180deg);
+}
+.ezlens-po-display-accordion .ezlens-po-acc-body {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.ezlens-po-display-accordion .ezlens-po-acc-body[hidden] {
+  display: none !important;
+}
+
+/* Modal trigger */
+.ezlens-po-modal-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ezlens-po-modal-trigger:hover {
+  background: #dbeafe;
+}
+.ezlens-po-modal-fields {
+  /* keep in form for submit; visually collapsed when using modal UI */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.ezlens-po-display-ajax_modal {
+  position: relative;
+}
+
+/* Modal shell */
+.ezlens-po-modal[hidden] {
+  display: none !important;
+}
+.ezlens-po-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ezlens-po-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+.ezlens-po-modal-dialog {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: min(80vh, 640px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+}
+.ezlens-po-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.ezlens-po-modal-title {
+  font-size: 14px;
+}
+.ezlens-po-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+}
+.ezlens-po-modal-body {
+  padding: 16px;
+  overflow: auto;
+  flex: 1;
+}
+.ezlens-po-modal-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-start;
+}
+.ezlens-po-modal-done {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ezlens-po-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Live price hint */
+.ezlens-po-price-hint {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  font-size: 13px;
+  color: #166534;
+}
+
+/* ===== Phase 3: Professional upload ===== */
+.ezlens-upload-box {
+  width: 100%;
+}
+.ezlens-upload-dropzone {
+  position: relative;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.ezlens-upload-dropzone:hover,
+.ezlens-upload-dropzone:focus {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+.ezlens-upload-dropzone.is-dragover {
+  border-color: #3b82f6;
+  background: #dbeafe;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.ezlens-upload-dropzone.is-uploading {
+  pointer-events: none;
+  opacity: 0.95;
+}
+.ezlens-upload-dropzone.is-success {
+  border-style: solid;
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+.ezlens-upload-dropzone.is-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+/* Hide native file control */
+.ezlens-upload-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  border: 0 !important;
+  opacity: 0 !important;
+}
+
+.ezlens-upload-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.ezlens-upload-icon-wrap {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 4px;
+}
+.ezlens-upload-icon-wrap .ezlens-icon,
+.ezlens-upload-icon-wrap svg {
+  width: 20px;
+  height: 20px;
+  color: #2563eb;
+  stroke: #2563eb;
+}
+.ezlens-upload-icon-fallback {
+  font-size: 22px;
+  color: #2563eb;
+  margin-bottom: 4px;
+}
+.ezlens-upload-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.ezlens-upload-sub {
+  font-size: 12px;
+  color: #64748b;
+}
+.ezlens-upload-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.ezlens-upload-progressing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+}
+.ezlens-upload-progress-track {
+  width: 100%;
+  max-width: 280px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ezlens-upload-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 999px;
+  transition: width 0.15s ease-out;
+}
+.ezlens-upload-progress-text {
+  font-size: 12px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.ezlens-upload-done {
+  text-align: right;
+}
+.ezlens-upload-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px;
+}
+.ezlens-upload-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #e2e8f0 center/cover no-repeat;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  overflow: hidden;
+}
+.ezlens-upload-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ezlens-upload-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ezlens-upload-filename {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ezlens-upload-status-ok {
+  font-size: 11px;
+  color: #16a34a;
+  font-weight: 600;
+}
+.ezlens-upload-remove {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ezlens-upload-remove:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.ezlens-upload-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+}
+.ezlens-upload-error-msg {
+  font-size: 12px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+.ezlens-upload-retry {
+  border: 1px solid #fca5a5;
+  background: #fff;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ezlens-upload-retry:hover {
+  background: #fef2f2;
+}
+
+/* ===== Phase 4: Professional field UIs ===== */
+.ezlens-input-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.ezlens-input-icon-wrap {
+  position: absolute;
+  right: 12px;
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.ezlens-input-icon-wrap svg,
+.ezlens-input-icon-wrap .ezlens-icon {
+  width: 18px;
+  height: 18px;
+}
+.ezlens-input-shell .ezlens-field-input {
+  padding-right: 40px;
+}
+.ezlens-input-textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* Select */
+.ezlens-select-shell {
+  position: relative;
+}
+.ezlens-select-shell .ezlens-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-left: 36px;
+  cursor: pointer;
+}
+.ezlens-select-caret {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #94a3b8;
+  border-bottom: 2px solid #94a3b8;
+  transform: translateY(-60%) rotate(45deg);
+  pointer-events: none;
+}
+
+/* Choice list (radio / checkbox) */
+.ezlens-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ezlens-choice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.ezlens-choice-item:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+.ezlens-choice-item:has(input:checked) {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.ezlens-choice-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ezlens-choice-ui {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+  position: relative;
+  background: #fff;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ezlens-choice-ui-check {
+  border-radius: 5px;
+}
+.ezlens-choice-item input:checked + .ezlens-choice-ui {
+  border-color: #2563eb;
+  background: #2563eb;
+}
+.ezlens-choice-item input:checked + .ezlens-choice-ui::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #fff;
+}
+.ezlens-choice-item input:checked + .ezlens-choice-ui-check::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  border-radius: 0;
+  inset: auto;
+  background: transparent;
+}
+.ezlens-choice-text {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.4;
+}
+.ezlens-opt-price {
+  color: #16a34a;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Image select cards */
+.ezlens-image-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+.ezlens-image-card {
+  cursor: pointer;
+  margin: 0;
+}
+.ezlens-image-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.ezlens-image-card-inner {
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.ezlens-image-card:hover .ezlens-image-card-inner {
+  border-color: #cbd5e1;
+}
+.ezlens-image-card input:checked + .ezlens-image-card-inner {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.ezlens-image-card-media {
+  aspect-ratio: 1;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.ezlens-image-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ezlens-image-card-placeholder {
+  font-size: 22px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+.ezlens-image-card-body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ezlens-image-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+}
+.ezlens-image-card-price {
+  font-size: 11px;
+  color: #16a34a;
+  font-weight: 600;
+}
+.ezlens-image-card-check {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+.ezlens-image-card-check::after {
+  content: '✓';
+}
+.ezlens-image-card input:checked + .ezlens-image-card-inner .ezlens-image-card-check {
+  display: inline-flex;
+}
+
+/* Color */
+.ezlens-color-shell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ezlens-field-color {
+  width: 48px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+.ezlens-color-hex {
+  max-width: 120px;
+  font-family: ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+/* Group */
+.ezlens-field-group-wrap {
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+.ezlens-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.ezlens-field-group {
+  display: grid;
+  grid-template-columns: repeat(var(--ezlens-cols, 1), minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 640px) {
+  .ezlens-field-group {
+    grid-template-columns: 1fr !important;
+  }
+  .ezlens-image-select-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Structural */
+.ezlens-field-heading {
+  margin: 8px 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.ezlens-field-html {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Price always direct / outside modal */
+.ezlens-po-price-hint {
+  display: none;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #166534;
+}
+.ezlens-po-price-hint.is-visible,
+.ezlens-po-price-hint:not([hidden]) {
+  display: block;
+}

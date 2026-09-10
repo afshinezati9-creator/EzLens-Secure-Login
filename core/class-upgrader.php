@@ -1,8 +1,51 @@
 <?php
 class EzLens_Auth_Upgrader {
     const DB_VERSION='5.4.0';
-    public static function maybe_upgrade(){if(version_compare((string)get_option('ezlens_auth_db_version','0'),self::DB_VERSION,'<')){self::install();update_option('ezlens_auth_db_version',self::DB_VERSION);EzLens_Auth_Settings::clear_cache();}}
-    public static function install(){foreach(EzLens_Auth_Settings::get_defaults() as $k=>$v){if(get_option('ezlens_auth_'.$k,false)===false)add_option('ezlens_auth_'.$k,$v,false);}self::repair_legacy_id_defaults();self::campaign_delivery_table();self::campaign_unsubscribe_table();self::audit_table();self::notifications_table();self::app_tokens_table();self::email_log_table();self::campaign_recipients_table();self::campaign_indexes();self::migrate_legacy_sms();}
+    
+    public static function maybe_upgrade(){
+        if(version_compare((string)get_option('ezlens_auth_db_version','0'),self::DB_VERSION,'<')) {
+            self::install();
+            update_option('ezlens_auth_db_version',self::DB_VERSION);
+            EzLens_Auth_Settings::clear_cache();
+            
+            // ===== Commerce Table Upgrade =====
+            $commerce_install = EZLAUTH_MODULES_DIR . 'commerce/class-install.php';
+            if (file_exists($commerce_install)) {
+                require_once $commerce_install;
+                if (class_exists('EzLens_Commerce_Install')) {
+                    $current_version = EzLens_Commerce_Install::get_schema_version();
+                    if (version_compare($current_version, EzLens_Commerce_Install::DB_VERSION, '<')) {
+                        EzLens_Commerce_Install::install();
+                    }
+                }
+            }
+        }
+    }
+    
+    public static function install(){
+        foreach(EzLens_Auth_Settings::get_defaults() as $k=>$v){
+            if(get_option('ezlens_auth_'.$k,false)===false) add_option('ezlens_auth_'.$k,$v,false);
+        }
+        self::repair_legacy_id_defaults();
+        self::campaign_delivery_table();
+        self::campaign_unsubscribe_table();
+        self::audit_table();
+        self::notifications_table();
+        self::app_tokens_table();
+        self::email_log_table();
+        self::campaign_recipients_table();
+        self::campaign_indexes();
+        self::migrate_legacy_sms();
+        
+        // ===== Commerce Table Install =====
+        $commerce_install = EZLAUTH_MODULES_DIR . 'commerce/class-install.php';
+        if (file_exists($commerce_install)) {
+            require_once $commerce_install;
+            if (class_exists('EzLens_Commerce_Install')) {
+                EzLens_Commerce_Install::install();
+            }
+        }
+    }
 
     private static function migrate_legacy_sms(){
         $map=['sms_api_key'=>'otp_sms_api_key','sms_line_number'=>'otp_sms_line','sms_template_id'=>'otp_sms_template','sms_enabled'=>'otp_sms_enabled'];
@@ -10,6 +53,7 @@ class EzLens_Auth_Upgrader {
     }
 
     private static function campaign_delivery_table(){global $wpdb;$table=$wpdb->prefix.'ezlens_campaign_delivery';$charset=$wpdb->get_charset_collate();$sql="CREATE TABLE {$table} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT,campaign_id bigint(20) unsigned NOT NULL,recipient_email varchar(190) DEFAULT '',recipient_phone varchar(30) DEFAULT '',recipient_name varchar(190) DEFAULT '',channel varchar(20) NOT NULL DEFAULT 'sms',provider varchar(50) DEFAULT '',status varchar(20) NOT NULL DEFAULT 'failed',response longtext,message_id varchar(190) DEFAULT '',retry_count smallint(5) unsigned NOT NULL DEFAULT 0,created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,sent_at datetime DEFAULT NULL,PRIMARY KEY(id),KEY campaign_id(campaign_id),KEY status(status),KEY provider(provider),KEY created_at(created_at)) {$charset};";require_once ABSPATH.'wp-admin/includes/upgrade.php';dbDelta($sql);}
+    
     private static function campaign_recipients_table(){
         global $wpdb;
         $t=$wpdb->prefix.'ezlens_campaign_recipients';
@@ -39,6 +83,7 @@ class EzLens_Auth_Upgrader {
             KEY updated_at(updated_at)
         ) {$c};");
     }
+    
     private static function email_log_table(){global $wpdb;$t=$wpdb->prefix.'ezlens_email_log';$c=$wpdb->get_charset_collate();self::simple_table($t,"CREATE TABLE {$t} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT,user_id bigint(20) unsigned NOT NULL DEFAULT 0,campaign_id bigint(20) unsigned NOT NULL DEFAULT 0,to_email varchar(190) NOT NULL,subject varchar(255) DEFAULT '',status varchar(20) NOT NULL DEFAULT 'failed',error_message text,latency_ms decimal(10,2) DEFAULT 0,created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(id),KEY user_id(user_id),KEY campaign_id(campaign_id),KEY status(status),KEY created_at(created_at)) {$c};");}
 
     /**
@@ -109,9 +154,14 @@ class EzLens_Auth_Upgrader {
             }
         }
     }
+    
     private static function simple_table($name,$sql){require_once ABSPATH.'wp-admin/includes/upgrade.php';dbDelta($sql);}
+    
     private static function campaign_unsubscribe_table(){global $wpdb;$t=$wpdb->prefix.'ezlens_campaign_unsubscribes';$c=$wpdb->get_charset_collate();self::simple_table($t,"CREATE TABLE {$t} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT,channel varchar(20) NOT NULL,email varchar(190) DEFAULT '',phone varchar(30) DEFAULT '',token_hash char(64) DEFAULT '',created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(id),KEY channel(channel),KEY email(email),KEY phone(phone),KEY token_hash(token_hash)) {$c};");}
+    
     private static function audit_table(){global $wpdb;$t=$wpdb->prefix.'ezlens_audit_log';$c=$wpdb->get_charset_collate();self::simple_table($t,"CREATE TABLE {$t} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT,user_id bigint(20) unsigned NOT NULL DEFAULT 0,action varchar(100) NOT NULL,object_type varchar(50) DEFAULT '',object_id bigint(20) unsigned NOT NULL DEFAULT 0,details longtext,ip varchar(45) DEFAULT '',user_agent text,created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(id),KEY user_id(user_id),KEY action(action),KEY created_at(created_at),KEY object(object_type,object_id)) {$c};");}
+    
     private static function notifications_table(){global $wpdb;$t=$wpdb->prefix.'ezlens_notifications';$c=$wpdb->get_charset_collate();self::simple_table($t,"CREATE TABLE {$t} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT,user_id bigint(20) unsigned NOT NULL,title varchar(255) NOT NULL,message text NOT NULL,type varchar(40) DEFAULT 'info',url varchar(500) DEFAULT '',is_read tinyint(1) NOT NULL DEFAULT 0,created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY(id),KEY user_id(user_id),KEY is_read(is_read),KEY created_at(created_at)) {$c};");}
+    
     private static function app_tokens_table(){global $wpdb;$t=$wpdb->prefix.'ezlens_app_tokens';$c=$wpdb->get_charset_collate();self::simple_table($t,"CREATE TABLE {$t} (id bigint(20) unsigned NOT NULL AUTO_INCREMENT,user_id bigint(20) unsigned NOT NULL,token_hash char(64) NOT NULL,device_name varchar(190) DEFAULT '',platform varchar(40) DEFAULT '',expires_at datetime NOT NULL,created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,last_used_at datetime DEFAULT NULL,revoked_at datetime DEFAULT NULL,PRIMARY KEY(id),UNIQUE KEY token_hash(token_hash),KEY user_id(user_id),KEY expires_at(expires_at)) {$c};");}
 }

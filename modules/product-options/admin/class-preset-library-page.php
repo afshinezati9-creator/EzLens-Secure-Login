@@ -28,6 +28,7 @@ final class EzLens_Product_Options_Preset_Library_Page {
             'ezlens-product-options-presets',
             [$this, 'render']
         );
+
     }
 
     public function render() {

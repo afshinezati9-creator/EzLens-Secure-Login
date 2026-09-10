@@ -5,22 +5,6 @@ class EzLens_Product_Options_Ajax {
     private static $instance = null;
     private $manager;
 
-    private const ALLOWED_FIELD_TYPES = [
-        'text', 'email', 'phone', 'textarea', 'number', 'select', 'radio',
-        'checkbox', 'image_select', 'color', 'date', 'time', 'upload',
-        'heading', 'divider', 'spacer', 'group', 'html'
-    ];
-
-    private const ALLOWED_UPLOAD_MIMES = [
-        'jpg|jpeg|jpe' => 'image/jpeg',
-        'png'          => 'image/png',
-        'gif'          => 'image/gif',
-        'webp'         => 'image/webp',
-        'pdf'          => 'application/pdf',
-        'doc'          => 'application/msword',
-        'docx'         => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ];
-
     public static function get_instance() {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -31,16 +15,23 @@ class EzLens_Product_Options_Ajax {
     private function __construct() {
         $this->manager = EzLens_Product_Options_Template_Manager::get_instance();
 
+        // ===== عملیات اصلی =====
         add_action('wp_ajax_ezlens_save_template', [$this, 'save_template']);
         add_action('wp_ajax_ezlens_duplicate_template', [$this, 'duplicate_template']);
         add_action('wp_ajax_ezlens_get_template_preview', [$this, 'get_template_preview']);
         add_action('wp_ajax_ezlens_upload_file', [$this, 'upload_file']);
+        // Guest product pages need upload; hardened inside upload_file() (rate limit + mime + size).
         add_action('wp_ajax_nopriv_ezlens_upload_file', [$this, 'upload_file']);
         add_action('wp_ajax_ezlens_delete_template', [$this, 'delete_template']);
+        add_action('wp_ajax_ezlens_create_preset', [$this, 'create_preset']);
+
+        // ===== ✅ گام ۹: Export و Import =====
+        add_action('wp_ajax_ezlens_export_templates', [$this, 'export_templates']);
+        add_action('wp_ajax_ezlens_import_templates', [$this, 'import_templates']);
     }
 
     /**
-     * ذخیره قالب (افزودن یا ویرایش)
+     * ذخیره پالت (افزودن یا ویرایش)
      */
     public function save_template() {
         check_ajax_referer('ezlens_template_editor_nonce', 'nonce');
@@ -59,36 +50,37 @@ class EzLens_Product_Options_Ajax {
             wp_send_json_error(['message' => 'عنوان قالب الزامی است.'], 400);
         }
 
-        if ($id > 0 && !$this->manager->get($id)) {
-            wp_send_json_error(['message' => 'قالب موردنظر یافت نشد.'], 404);
-        }
-
+        // دریافت فیلدها (از سازنده بصری)
         $fields_raw = $_POST['fields'] ?? [];
         if (is_string($fields_raw)) {
             $fields_raw = wp_unslash($fields_raw);
             $fields = json_decode($fields_raw, true);
-
             if (JSON_ERROR_NONE !== json_last_error()) {
-                wp_send_json_error(['message' => 'ساختار فیلدهای قالب نامعتبر است.'], 400);
+                $fields = [];
             }
+        } elseif (is_array($fields_raw)) {
+            $fields = $fields_raw;
         } else {
-            $fields = wp_unslash($fields_raw);
+            $fields = [];
         }
 
-        if (!is_array($fields)) {
-            wp_send_json_error(['message' => 'ساختار فیلدهای قالب باید آرایه باشد.'], 400);
-        }
-
-        $validation = $this->validate_fields($fields);
-        if (!$validation['valid']) {
-            wp_send_json_error(['message' => $validation['message']], 400);
+        // دریافت کدهای ویرایشگر (از باکس واحد)
+        $code_editor = sanitize_textarea_field(wp_unslash($_POST['code_editor'] ?? ''));
+        if (!empty($code_editor)) {
+            $parts = preg_split('/\/\*\*CSS\*\*\/|\/\*\*JS\*\*\//', $code_editor);
+            $html = isset($parts[0]) ? trim($parts[0]) : '';
+            $css = isset($parts[1]) ? trim($parts[1]) : '';
+            $js = isset($parts[2]) ? trim($parts[2]) : '';
+            $fields['_code_html'] = $html;
+            $fields['_code_css'] = $css;
+            $fields['_code_js'] = $js;
         }
 
         $data = [
-            'title' => $title,
+            'title'       => $title,
             'description' => $description,
-            'status' => $status,
-            'fields' => $validation['fields'],
+            'status'      => $status,
+            'fields'      => $fields,
         ];
 
         if ($id > 0) {
@@ -108,136 +100,7 @@ class EzLens_Product_Options_Ajax {
     }
 
     /**
-     * اعتبارسنجی و نرمال‌سازی فیلدهای Builder بدون تغییر ساختار فعلی ذخیره‌سازی.
-     */
-    private function validate_fields(array $fields) {
-        $normalized = [];
-        $position = 0;
-
-        foreach ($fields as $key => $field) {
-            if (strpos((string) $key, '_code_') === 0) {
-                continue;
-            }
-
-            if (!is_array($field)) {
-                return [
-                    'valid' => false,
-                    'message' => 'ساختار یکی از فیلدهای قالب نامعتبر است.',
-                    'fields' => [],
-                ];
-            }
-
-            $type = sanitize_key($field['type'] ?? '');
-            if (!in_array($type, self::ALLOWED_FIELD_TYPES, true)) {
-                return [
-                    'valid' => false,
-                    'message' => 'نوع یکی از فیلدهای قالب پشتیبانی نمی‌شود: ' . $type,
-                    'fields' => [],
-                ];
-            }
-
-            $field_name = sanitize_key($field['name'] ?? $key);
-            if ($field_name === '') {
-                $field_name = 'field_' . $position;
-            }
-
-            $clean = $field;
-            $clean['type'] = $type;
-            $clean['name'] = $field_name;
-
-            if (isset($field['label'])) {
-                $clean['label'] = sanitize_text_field($field['label']);
-            }
-            if (isset($field['placeholder'])) {
-                $clean['placeholder'] = sanitize_text_field($field['placeholder']);
-            }
-            if (isset($field['description'])) {
-                $clean['description'] = sanitize_textarea_field($field['description']);
-            }
-
-            if (isset($field['required'])) {
-                $clean['required'] = (bool) filter_var($field['required'], FILTER_VALIDATE_BOOLEAN);
-            }
-
-            if (isset($field['price'])) {
-                if (!is_numeric($field['price']) || (float) $field['price'] < 0) {
-                    return [
-                        'valid' => false,
-                        'message' => 'قیمت یکی از فیلدها نامعتبر است.',
-                        'fields' => [],
-                    ];
-                }
-                $clean['price'] = (float) $field['price'];
-            }
-
-            if (isset($field['options'])) {
-                if (!is_array($field['options'])) {
-                    return [
-                        'valid' => false,
-                        'message' => 'گزینه‌های یکی از فیلدها نامعتبر است.',
-                        'fields' => [],
-                    ];
-                }
-
-                $clean_options = [];
-                foreach ($field['options'] as $option_key => $option) {
-                    if (is_array($option)) {
-                        $option_clean = $option;
-                        if (isset($option['label'])) {
-                            $option_clean['label'] = sanitize_text_field($option['label']);
-                        }
-                        if (isset($option['value'])) {
-                            $option_clean['value'] = sanitize_text_field($option['value']);
-                        }
-                        if (isset($option['price'])) {
-                            if (!is_numeric($option['price']) || (float) $option['price'] < 0) {
-                                return [
-                                    'valid' => false,
-                                    'message' => 'قیمت یکی از گزینه‌های قالب نامعتبر است.',
-                                    'fields' => [],
-                                ];
-                            }
-                            $option_clean['price'] = (float) $option['price'];
-                        }
-                        if (isset($option['image'])) {
-                            $option_clean['image'] = esc_url_raw($option['image']);
-                        }
-                        $clean_options[$option_key] = $option_clean;
-                    } else {
-                        $clean_options[$option_key] = sanitize_text_field($option);
-                    }
-                }
-                $clean['options'] = $clean_options;
-            }
-
-            if (isset($field['children'])) {
-                if (!is_array($field['children'])) {
-                    return [
-                        'valid' => false,
-                        'message' => 'ساختار فیلدهای زیرمجموعه نامعتبر است.',
-                        'fields' => [],
-                    ];
-                }
-                $children_validation = $this->validate_fields($field['children']);
-                if (!$children_validation['valid']) {
-                    return $children_validation;
-                }
-                $clean['children'] = $children_validation['fields'];
-            }
-
-            $normalized[$key] = $clean;
-            $position++;
-        }
-
-        return [
-            'valid' => true,
-            'message' => '',
-            'fields' => $normalized,
-        ];
-    }
-
-    /**
-     * کپی کردن قالب
+     * کپی پالت
      */
     public function duplicate_template() {
         check_ajax_referer('ezlens_template_editor_nonce', 'nonce');
@@ -262,7 +125,7 @@ class EzLens_Product_Options_Ajax {
      */
     public function get_template_preview() {
         check_ajax_referer('ezlens_template_preview_nonce', 'nonce');
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can('edit_products') && !current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'دسترسی غیرمجاز'], 403);
         }
 
@@ -280,33 +143,52 @@ class EzLens_Product_Options_Ajax {
         foreach ((array) $template['fields'] as $key => $field) {
             if (strpos((string) $key, '_code_') === 0 || !is_array($field)) continue;
             $fields[] = [
-                'label' => $field['label'] ?? 'فیلد',
-                'type' => $field['type'] ?? 'text',
+                'label'    => $field['label'] ?? 'فیلد',
+                'type'     => $field['type'] ?? 'text',
                 'required' => !empty($field['required']),
             ];
         }
 
         wp_send_json_success([
             'fields' => $fields,
-            'title' => $template['title'],
+            'title'  => $template['title'],
             'status' => $template['status'],
         ]);
     }
 
     /**
-     * آپلود فایل با اعتبارسنجی MIME و محدودیت‌های سمت سرور.
-     * این endpoint برای فرم‌های مشتری نیز استفاده می‌شود؛ بنابراین nopriv عمداً حفظ شده است.
+     * آپلود فایل
      */
     public function upload_file() {
         check_ajax_referer('ezlens_po_nonce', 'nonce');
+
+        // Rate limit: max 10 uploads / 10 minutes per IP (+ user id if logged in).
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '0.0.0.0';
+        $uid = get_current_user_id();
+        $rl_key = 'ezlens_po_up_' . md5($ip . '|' . $uid);
+        $rl_count = (int) get_transient($rl_key);
+        if ($rl_count >= 10) {
+            wp_send_json_error(['message' => 'تعداد آپلود بیش از حد مجاز است. چند دقیقه بعد دوباره تلاش کنید.'], 429);
+        }
+        set_transient($rl_key, $rl_count + 1, 10 * MINUTE_IN_SECONDS);
 
         if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
             wp_send_json_error(['message' => 'فایلی برای آپلود ارسال نشده است.'], 400);
         }
 
         $file = $_FILES['file'];
-        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            wp_send_json_error(['message' => 'خطا در آپلود فایل.'], 400);
+        $ferr = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($ferr !== UPLOAD_ERR_OK) {
+            $map = [
+                UPLOAD_ERR_INI_SIZE   => 'حجم فایل از حد مجاز سرور بیشتر است.',
+                UPLOAD_ERR_FORM_SIZE  => 'حجم فایل از حد مجاز فرم بیشتر است.',
+                UPLOAD_ERR_PARTIAL    => 'فایل ناقص آپلود شد.',
+                UPLOAD_ERR_NO_FILE    => 'فایلی ارسال نشده است.',
+                UPLOAD_ERR_NO_TMP_DIR => 'پوشه موقت سرور در دسترس نیست.',
+                UPLOAD_ERR_CANT_WRITE => 'نوشتن فایل روی سرور ممکن نشد.',
+                UPLOAD_ERR_EXTENSION  => 'افزونه PHP آپلود را متوقف کرد.',
+            ];
+            wp_send_json_error(['message' => $map[$ferr] ?? 'خطا در آپلود فایل.'], 400);
         }
 
         $max_size = 5 * 1024 * 1024;
@@ -325,13 +207,22 @@ class EzLens_Product_Options_Ajax {
         }
 
         $file['name'] = $filename;
-        $filetype = wp_check_filetype_and_ext($file['tmp_name'], $filename, self::ALLOWED_UPLOAD_MIMES);
+        $allowed_mimes = [
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            'pdf'          => 'application/pdf',
+            'doc'          => 'application/msword',
+            'docx'         => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        $filetype = wp_check_filetype_and_ext($file['tmp_name'], $filename, $allowed_mimes);
 
         if (empty($filetype['ext']) || empty($filetype['type'])) {
             wp_send_json_error(['message' => 'نوع واقعی فایل مجاز نیست.'], 400);
         }
 
-        if (!in_array($filetype['type'], array_values(self::ALLOWED_UPLOAD_MIMES), true)) {
+        if (!in_array($filetype['type'], array_values($allowed_mimes), true)) {
             wp_send_json_error(['message' => 'نوع فایل مجاز نیست.'], 400);
         }
 
@@ -341,7 +232,7 @@ class EzLens_Product_Options_Ajax {
 
         $attachment_id = media_handle_upload('file', 0, [], [
             'test_form' => false,
-            'mimes' => self::ALLOWED_UPLOAD_MIMES,
+            'mimes' => $allowed_mimes,
         ]);
 
         if (is_wp_error($attachment_id)) {
@@ -354,15 +245,18 @@ class EzLens_Product_Options_Ajax {
             wp_send_json_error(['message' => 'آدرس فایل ایجاد نشد.'], 500);
         }
 
+        $mime = isset($filetype['type']) ? $filetype['type'] : '';
         wp_send_json_success([
             'url' => esc_url_raw($url),
             'filename' => basename($filename),
             'attachment_id' => (int) $attachment_id,
+            'mime' => $mime,
+            'size' => $size,
         ]);
     }
 
     /**
-     * حذف قالب (با چک کردن محصولات متصل)
+     * حذف پالت
      */
     public function delete_template() {
         check_ajax_referer('ezlens_template_delete_nonce', 'nonce');
@@ -381,6 +275,169 @@ class EzLens_Product_Options_Ajax {
         }
         wp_send_json_error(['message' => $result['message']], 500);
     }
+
+    /**
+     * ایجاد از پالت آماده (Preset)
+     */
+    public function create_preset() {
+        check_ajax_referer('ezlens_template_editor_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'دسترسی غیرمجاز'], 403);
+        }
+
+        $preset_id = sanitize_key($_POST['preset_id'] ?? '');
+        $title = sanitize_text_field($_POST['title'] ?? '');
+        if (empty($preset_id)) {
+            wp_send_json_error(['message' => 'شناسه پالت آماده نامعتبر است.'], 400);
+        }
+
+        $result = $this->manager->create_from_preset($preset_id, $title);
+        if ($result['success']) {
+            wp_send_json_success(['message' => 'پالت با موفقیت ایجاد شد.', 'id' => $result['id']]);
+        }
+        wp_send_json_error(['message' => $result['message']], 500);
+    }
+
+    // ========================================================================
+    // ===== ✅ گام ۹: Export و Import =====
+    // ========================================================================
+
+    /**
+     * ✅ خروجی گرفتن از پالت‌ها (Export)
+     * تمام پالت‌ها را به‌صورت JSON دانلود می‌کند
+     */
+    public function export_templates() {
+        check_ajax_referer('ezlens_export_import_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'دسترسی غیرمجاز'], 403);
+            return;
+        }
+
+        // دریافت پارامترهای فیلتر
+        $status = isset($_POST['status']) ? sanitize_key($_POST['status']) : 'all';
+        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        $limit = isset($_POST['limit']) ? absint($_POST['limit']) : 9999;
+
+        // دریافت تمام پالت‌ها
+        $list = $this->manager->get_list([
+            'status' => $status,
+            'search' => $search,
+            'limit'  => $limit,
+            'offset' => 0
+        ]);
+
+        $templates = $list['items'];
+
+        // آماده‌سازی داده‌ها برای خروجی
+        $export_data = [
+            'version'      => '1.0',
+            'exported_at'  => current_time('mysql'),
+            'site_url'     => home_url(),
+            'total'        => count($templates),
+            'templates'    => $templates
+        ];
+
+        wp_send_json_success([
+            'data'     => $export_data,
+            'filename' => 'ezlens-templates-backup-' . date('Y-m-d-H-i') . '.json'
+        ]);
+    }
+
+    /**
+     * ✅ وارد کردن پالت‌ها (Import)
+     * فایل JSON را دریافت و پالت‌ها را به سیستم اضافه می‌کند
+     */
+    public function import_templates() {
+        check_ajax_referer('ezlens_export_import_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'دسترسی غیرمجاز'], 403);
+            return;
+        }
+
+        // دریافت داده‌های JSON
+        $json_data = isset($_POST['json_data']) ? wp_unslash($_POST['json_data']) : '';
+        if (empty($json_data)) {
+            wp_send_json_error(['message' => 'داده‌ای برای وارد کردن وجود ندارد.'], 400);
+            return;
+        }
+
+        $data = json_decode($json_data, true);
+        if (!is_array($data) || empty($data['templates']) || !is_array($data['templates'])) {
+            wp_send_json_error(['message' => 'فرمت JSON نامعتبر است یا فاقد پالت‌های معتبر است.'], 400);
+            return;
+        }
+
+        // پارامترهای وارد کردن
+        $overwrite = isset($_POST['overwrite']) && $_POST['overwrite'] === '1';
+        $templates = $data['templates'];
+        $imported = 0;
+        $skipped = 0;
+        $updated = 0;
+        $errors = [];
+
+        foreach ($templates as $template) {
+            // بررسی وجود عنوان
+            if (empty($template['title'])) {
+                $skipped++;
+                continue;
+            }
+
+            // بررسی وجود پالت با عنوان مشابه
+            $existing = $this->manager->get_list([
+                'search' => $template['title'],
+                'limit'  => 1,
+                'offset' => 0
+            ]);
+
+            $exists = !empty($existing['items']);
+
+            // اگر پالت وجود دارد و overwrite فعال نیست، رد کن
+            if ($exists && !$overwrite) {
+                $skipped++;
+                continue;
+            }
+
+            // آماده‌سازی داده‌ها
+            $template_data = [
+                'title'       => $template['title'],
+                'description' => $template['description'] ?? '',
+                'fields'      => $template['fields'] ?? [],
+                'status'      => $template['status'] ?? 'active'
+            ];
+
+            if ($exists && $overwrite) {
+                // ویرایش پالت موجود
+                $result = $this->manager->update($existing['items'][0]['id'], $template_data);
+                if ($result['success']) {
+                    $updated++;
+                } else {
+                    $errors[] = $template['title'] . ': ' . $result['message'];
+                }
+            } else {
+                // ایجاد پالت جدید
+                $result = $this->manager->create($template_data);
+                if ($result['success']) {
+                    $imported++;
+                } else {
+                    $errors[] = $template['title'] . ': ' . $result['message'];
+                }
+            }
+        }
+
+        wp_send_json_success([
+            'imported' => $imported,
+            'updated'  => $updated,
+            'skipped'  => $skipped,
+            'errors'   => $errors,
+            'message'  => sprintf(
+                '%d پالت جدید ایجاد شد، %d پالت به‌روزرسانی شد، %d پالت نادیده گرفته شد.',
+                $imported,
+                $updated,
+                $skipped
+            )
+        ]);
+    }
 }
 
+// مقداردهی اولیه
 EzLens_Product_Options_Ajax::get_instance();

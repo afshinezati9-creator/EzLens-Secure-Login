@@ -1,9 +1,9 @@
 ## 📘 مستندات فنی ماژول ویژگی‌های محصول (Product Options Module)
 
-**نسخه:** 1.0.0  
-**تاریخ:** ۱۴۰۴/۰۶/۱۳  
+**نسخه:** 2.0.0  
+**تاریخ:** ۱۴۰۴/۰۶/۱۴  
 **نویسنده:** تیم توسعه EzLens  
-**حالت:** تکمیل‌شده (فاز ۱ تا ۷)
+**وضعیت:** پایدار – قابل توسعه
 
 ---
 
@@ -11,54 +11,68 @@
 
 ماژول **ویژگی‌های محصول (Product Options)** یک لایه‌ی مدیریتی و نمایشی بر روی ووکامرس است که به مدیر فروشگاه اجازه می‌دهد **پالت‌های سفارشی از فیلدها** را تعریف کرده و آن‌ها را به محصولات خاص متصل کند. مشتری در صفحه‌ی محصول، فیلدهای مرتبط را مشاهده کرده، اطلاعات موردنیاز (متن، انتخاب، آپلود فایل، رنگ و ...) را وارد می‌کند و این اطلاعات در طول مسیر خرید (سبد خرید، تسویه‌حساب، سفارش، پنل کاربری و ادمین) حفظ و نمایش داده می‌شوند.
 
-این ماژول **جایگزین پلاگین‌های شخص‌ثالث** مانند Extra Product Options نیست، بلکه با رویکردی **ماژولار، سبک و کاملاً سازگار با معماری EzLens** توسعه یافته است.
+این ماژول با رویکردی **ماژولار، لایه‌ای و کاملاً سازگار با معماری EzLens** توسعه یافته است و از الگوهای **Repository**، **Service** و **Event-Driven** برای جداسازی مسئولیت‌ها استفاده می‌کند.
 
 ---
 
 ## 🧱 معماری و هسته‌ی فنی
 
-### ۱. ساختار دیتابیس
+### ۱. لایه‌های معماری
+
+| لایه | مسیر | شرح |
+|------|------|------|
+| **لایه داده (Repository)** | `src/Repositories/` | ارتباط با دیتابیس و کوئری‌نویسی |
+| **لایه سرویس (Service)** | `src/Services/` | منطق کسب‌وکار، اعتبارسنجی، پیش‌پردازش |
+| **لایه کنترلر (Handler)** | `modules/product-options/` | مدیریت درخواست‌ها (AJAX، هوک‌ها) |
+| **لایه نمایش (UI)** | `admin/pages/` و `frontend/` | رندر صفحات و فیلدها |
+| **لایه یکپارچه‌سازی (Integration)** | `class-woocommerce-integration.php` | اتصال به ووکامرس از طریق هوک‌ها |
+
+### ۲. ساختار دیتابیس
 
 | نام جدول | شرح |
 |----------|------|
 | `wp_ezlens_option_templates` | ذخیره‌ی پالت‌های ساخته‌شده توسط مدیر. شامل `title`, `description`, `fields` (JSON), `status`, `created_at`, `updated_at`. |
 | `wp_postmeta` | برای اتصال پالت به محصول از کلید `_ezlens_option_template_id` استفاده می‌شود. |
 
-### ۲. جریان داده (Data Flow)
+### ۳. جریان داده (Data Flow)
 
 ```
 مدیر → ایجاد پالت در داشبورد
      ↓
-ذخیره در جدول `wp_ezlens_option_templates`
+TemplateService → TemplateRepository → ذخیره در دیتابیس
      ↓
 اتصال پالت به محصول (از طریق postmeta)
      ↓
-مشتری → صفحه محصول → نمایش فیلدها
+مشتری → صفحه محصول → FieldRenderer → نمایش فیلدها
      ↓
 انتخاب/ورود اطلاعات → افزودن به سبد خرید
      ↓
-ذخیره‌سازی اطلاعات در `cart_item_data`
+WooCommerce Integration → ذخیره‌سازی در `cart_item_data`
      ↓
 تبدیل به سفارش → ذخیره در `order_item_meta`
      ↓
-نمایش در پنل کاربری، ادمین و ایمیل‌ها
+OrderDisplay → نمایش در پنل کاربری، ادمین و ایمیل‌ها
 ```
 
 ---
 
-## 📂 ساختار فایل‌های ماژول (بر اساس آخرین وضعیت)
+## 📂 ساختار فایل‌های ماژول (نسخه ۲.۰.۰)
 
 ```
 modules/product-options/
 │
 ├── class-install.php                      # ایجاد جدول دیتابیس (یک بار)
-├── class-template-manager.php             # CRUD پالت‌ها (مدیریت)
+├── class-template-manager.php             # (منسوخ) مدیریت پالت‌ها – به TemplateService منتقل شده
 ├── class-ajax-handler.php                 # هندلرهای AJAX (ذخیره، کپی، حذف، آپلود، پیش‌نمایش)
-├── class-field-renderer.php               # رندر فیلدها در صفحه محصول + ذخیره در سبد خرید و سفارش
+├── class-field-renderer.php               # رندر فیلدها در صفحه محصول + قیمت‌گذاری پویا
 ├── class-order-display.php                # نمایش ویژگی‌ها در پنل کاربری، ادمین و ایمیل‌ها
+├── class-pricing-engine.php               # موتور محاسبه قیمت پویا بر اساس انتخاب‌ها
+├── class-woocommerce-integration.php      # یکپارچه‌سازی با ووکامرس (هوک‌ها، فیلترها، ذخیره‌سازی)
+├── readme.txt                             # اطلاعات اولیه ماژول
 │
 ├── admin/
 │   ├── class-field-renderer.php           # (تکراری – احتمالاً منسوخ) یک نسخه از رندر فیلدها برای ادمین
+│   ├── class-preset-library-page.php      # صفحه کتابخانه قالب‌های آماده (Presets)
 │   ├── meta-box.php                       # متاباکس انتخاب پالت در صفحه ویرایش محصول
 │   │
 │   └── pages/
@@ -70,6 +84,16 @@ modules/product-options/
 │       ├── template-editor-settings.php   # تنظیمات CSS اختصاصی و تم‌ها
 │       └── template-form.php              # (نمونه فرم تست – برای نمایش یا توسعه)
 │
+├── src/                                   # لایه‌های سرویس و ریپازیتوری (جدید)
+│   ├── Repositories/
+│   │   └── TemplateRepository.php         # کوئری‌های دیتابیس برای پالت‌ها
+│   │
+│   └── Services/
+│       ├── TemplateService.php            # منطق کسب‌وکار پالت‌ها (CRUD، اعتبارسنجی، کش)
+│       ├── FieldSchemaValidator.php       # اعتبارسنجی ساختار JSON فیلدها
+│       ├── ConditionEvaluator.php         # ارزیابی شرایط شرطی (Conditional Logic)
+│       └── PresetLibrary.php              # کتابخانه قالب‌های آماده (Presets) برای شروع سریع
+│
 └── frontend/
     ├── assets/
     │   ├── css/
@@ -80,25 +104,64 @@ modules/product-options/
     └── (هیچ قالب جداگانه‌ای نیاز نیست؛ همه فیلدها توسط کلاس FieldRenderer رندر می‌شوند)
 ```
 
-> **توجه:** فایل `admin/class-field-renderer.php` احتمالاً یک نسخه‌ی قدیمی یا تکراری است و باید با نسخه‌ی اصلی (موجود در ریشه‌ی ماژول) هماهنگ شود. در توسعه‌های آینده از آن استفاده نکنید.
+---
+
+## 🔧 شرح کلاس‌های اصلی (نسخه ۲.۰.۰)
+
+### لایه Repository
+
+#### `EzLens_Product_Options_Repositories_TemplateRepository`
+- **مسئولیت:** انجام عملیات دیتابیسی مربوط به پالت‌ها (جدا از منطق کسب‌وکار)
+- **متدهای کلیدی:**
+  - `find($id)` – دریافت یک پالت با شناسه
+  - `findAll($filters, $pagination)` – دریافت لیست با فیلتر و صفحه‌بندی
+  - `create($data)` – ثبت پالت جدید
+  - `update($id, $data)` – به‌روزرسانی پالت
+  - `delete($id)` – حذف فیزیکی پالت
+  - `countConnectedProducts($id)` – تعداد محصولات متصل به پالت
 
 ---
 
-## 🔧 شرح کلاس‌های اصلی
+### لایه Services
 
-### `EzLens_Product_Options_Template_Manager`
-- **مسئولیت:** مدیریت پالت‌ها (ایجاد، ویرایش، دریافت، لیست، حذف، کپی، اتصال به محصول)
+#### `EzLens_Product_Options_Services_TemplateService`
+- **مسئولیت:** منطق کسب‌وکار پالت‌ها (اعتبارسنجی، پیش‌پردازش، کش، اتصال به محصول)
 - **متدهای کلیدی:**
-  - `create($data)` – ثبت پالت جدید در دیتابیس
-  - `update($id, $data)` – به‌روزرسانی پالت
-  - `get($id)` – دریافت یک پالت با کش
-  - `get_list($args)` – دریافت لیست با فیلتر و صفحه‌بندی
-  - `delete($id)` – حذف پالت (با بررسی محصولات متصل)
-  - `duplicate($id)` – کپی پالت
-  - `get_template_for_product($product_id)` – دریافت پالت متصل به محصول
-  - `attach_to_product($product_id, $template_id)` – اتصال/جداسازی پالت از محصول
+  - `createTemplate($data)` – ایجاد پالت با اعتبارسنجی کامل
+  - `updateTemplate($id, $data)` – ویرایش پالت با بررسی وابستگی‌ها
+  - `getTemplate($id)` – دریافت پالت با کش
+  - `getTemplates($args)` – دریافت لیست با فیلتر
+  - `deleteTemplate($id)` – حذف با بررسی محصولات متصل
+  - `duplicateTemplate($id)` – کپی پالت و فیلدها
+  - `attachToProduct($product_id, $template_id)` – اتصال پالت به محصول
+  - `detachFromProduct($product_id)` – جدا کردن پالت از محصول
+  - `getTemplateForProduct($product_id)` – دریافت پالت متصل به محصول
 
-### `EzLens_Product_Options_Ajax`
+#### `EzLens_Product_Options_Services_FieldSchemaValidator`
+- **مسئولیت:** اعتبارسنجی ساختار JSON هر فیلد قبل از ذخیره‌سازی
+- **متدهای کلیدی:**
+  - `validate($fields)` – بررسی صحت تمام فیلدها
+  - `validateField($key, $field)` – بررسی یک فیلد بر اساس نوع آن
+  - `getErrors()` – دریافت لیست خطاهای اعتبارسنجی
+
+#### `EzLens_Product_Options_Services_ConditionEvaluator`
+- **مسئولیت:** ارزیابی شرایط شرطی برای نمایش/مخفی کردن فیلدها
+- **متدهای کلیدی:**
+  - `evaluate($condition, $values)` – بررسی یک شرط بر اساس مقادیر ورودی
+  - `shouldRender($field, $values)` – تصمیم‌گیری برای رندر یک فیلد
+
+#### `EzLens_Product_Options_Services_PresetLibrary`
+- **مسئولیت:** ارائه قالب‌های آماده برای شروع سریع (لنز، عینک، عینک آفتابی و ...)
+- **متدهای کلیدی:**
+  - `getPresets()` – دریافت لیست قالب‌های آماده
+  - `getPreset($slug)` – دریافت یک قالب خاص
+  - `applyPreset($slug, $template_data)` – اعمال قالب روی داده‌های پالت
+
+---
+
+### لایه کنترلر (Handlers)
+
+#### `EzLens_Product_Options_Ajax`
 - **مسئولیت:** پردازش درخواست‌های AJAX از صفحه‌ی ویرایشگر و متاباکس
 - **متدهای کلیدی:**
   - `save_template()` – ذخیره‌سازی پالت (با پشتیبانی از فیلدهای بصری و کدها)
@@ -107,27 +170,28 @@ modules/product-options/
   - `get_template_preview()` – بارگذاری پیش‌نمایش فیلدها در متاباکس
   - `upload_file()` – آپلود فایل با نوار پیشرفت
 
-### `EzLens_Product_Options_FieldRenderer`
-- **مسئولیت:** رندر فیلدها در صفحه محصول، قیمت‌گذاری پویا، ذخیره‌سازی در سبد خرید و سفارش
+#### `EzLens_Product_Options_FieldRenderer`
+- **مسئولیت:** رندر فیلدها در صفحه محصول، قیمت‌گذاری پویا
 - **متدهای کلیدی:**
   - `render_fields()` – نقطه‌ی ورود (هوک `woocommerce_before_add_to_cart_button`)
   - `render_field($key, $field)` – رندر یک فیلد بر اساس نوع آن
+
+#### `EzLens_Product_Options_WooCommerce_Integration`
+- **مسئولیت:** یکپارچه‌سازی با ووکامرس (ذخیره‌سازی در سبد خرید، سفارش، نمایش)
+- **متدهای کلیدی:**
   - `add_cart_item_data()` – افزودن اطلاعات به سبد خرید
   - `display_cart_item_data()` – نمایش اطلاعات در سبد خرید
   - `add_order_item_meta()` – ذخیره در سفارش
-  - `calculate_extra_price()` – محاسبه‌ی قیمت اضافی بر اساس انتخاب‌ها
+  - `display_order_item_meta()` – نمایش در پنل کاربری و ادمین
+  - `calculate_cart_item_price()` – محاسبه قیمت نهایی آیتم سبد خرید
 
-### `EzLens_Product_Options_OrderDisplay`
+#### `EzLens_Product_Options_OrderDisplay`
 - **مسئولیت:** نمایش ویژگی‌ها در پنل کاربری، ادمین و ایمیل‌ها
 - **متدهای کلیدی:**
   - `display_in_user_panel()` – نمایش در سفارش‌های مشتری
   - `display_in_admin()` – نمایش در صفحه ویرایش سفارش (ادمین)
   - `display_in_emails()` – نمایش در ایمیل‌های تأیید سفارش
   - `add_order_meta_box()` – افزودن متاباکس در صفحه سفارش ادمین
-
-### `EzLens_Product_Options_Install`
-- **مسئولیت:** ایجاد جدول دیتابیس در زمان فعال‌سازی
-- **متد کلیدی:** `create_table()` – با شرط یک‌بار اجرا شدن
 
 ---
 
@@ -168,14 +232,15 @@ modules/product-options/
 
 ## 🔗 اتصال به ووکامرس (هوک‌ها)
 
-| هوک | کاربرد |
-|-----|--------|
-| `woocommerce_before_add_to_cart_button` | نمایش فیلدها در صفحه محصول |
-| `woocommerce_add_cart_item_data` | افزودن اطلاعات انتخاب‌شده به سبد خرید |
-| `woocommerce_get_item_data` | نمایش اطلاعات در سبد خرید |
-| `woocommerce_checkout_create_order_line_item` | ذخیره اطلاعات در سفارش |
-| `woocommerce_order_item_meta_end` | نمایش در پنل کاربری و ادمین |
-| `add_meta_boxes` | افزودن متاباکس انتخاب پالت در محصول و سفارش |
+| هوک | کاربرد | متد مرتبط |
+|-----|--------|-----------|
+| `woocommerce_before_add_to_cart_button` | نمایش فیلدها در صفحه محصول | `FieldRenderer::render_fields()` |
+| `woocommerce_add_cart_item_data` | افزودن اطلاعات انتخاب‌شده به سبد خرید | `WooCommerceIntegration::add_cart_item_data()` |
+| `woocommerce_get_item_data` | نمایش اطلاعات در سبد خرید | `WooCommerceIntegration::display_cart_item_data()` |
+| `woocommerce_checkout_create_order_line_item` | ذخیره اطلاعات در سفارش | `WooCommerceIntegration::add_order_item_meta()` |
+| `woocommerce_order_item_meta_end` | نمایش در پنل کاربری و ادمین | `OrderDisplay::display_in_*()` |
+| `add_meta_boxes` | افزودن متاباکس انتخاب پالت در محصول و سفارش | `meta-box.php` |
+| `woocommerce_cart_item_price` | محاسبه قیمت پویا در سبد خرید | `PricingEngine::calculate_cart_item_price()` |
 
 ---
 
@@ -189,22 +254,38 @@ modules/product-options/
    ```
 2. در تابع `getFieldHTML`، یک `case` جدید برای `type` اضافه کن.
 3. در متد `render_field` در `class-field-renderer.php`، یک `case` جدید برای رندر در فرانت‌اند اضافه کن.
-4. در صورت نیاز، تنظیمات اختصاصی را به `field.settings` در `template-editor-settings.php` اضافه کن.
+4. در `FieldSchemaValidator`، قانون اعتبارسنجی برای نوع جدید اضافه کن.
+5. در صورت نیاز، تنظیمات اختصاصی را به `field.settings` در `template-editor-settings.php` اضافه کن.
 
 ### ۲. افزودن قابلیت شرطی (Conditional Logic)
 
+- از کلاس `ConditionEvaluator` استفاده کن.
 - یک کلید جدید به `field` اضافه کن مانند `condition: { field: "other_field", operator: "==", value: "something" }`.
-- در `product-options.js`، هنگام تغییر فیلدها، شرایط را بررسی کن و فیلدهای مرتبط را نمایش/مخفی کن.
-- در `class-field-renderer.php`، یک متد `should_render_field($field, $values)` اضافه کن.
+- در `product-options.js`، هنگام تغییر فیلدها، شرایط را با AJAX یا محلی بررسی کن و فیلدهای مرتبط را نمایش/مخفی کن.
+- در `FieldRenderer`، متد `should_render_field` را توسعه بده.
 
-### ۳. تغییر در ذخیره‌سازی یا نمایش
+### ۳. افزودن قالب آماده جدید (Preset)
 
-- ذخیره‌سازی در سبد خرید: متد `add_cart_item_data` در `class-field-renderer.php`.
-- نمایش در سبد خرید: متد `display_cart_item_data`.
-- ذخیره در سفارش: متد `add_order_item_meta`.
-- نمایش در پنل کاربری/ادمین: کلاس `class-order-display.php`.
+1. در `PresetLibrary`، یک متد جدید اضافه کن:
+   ```php
+   public function getPresetNew() {
+       return [
+           'title' => 'عنوان قالب',
+           'fields' => [ /* تعریف فیلدها */ ]
+       ];
+   }
+   ```
+2. در متد `getPresets()`، قالب جدید را به لیست اضافه کن.
+3. در صفحه `class-preset-library-page.php`، یک دکمه برای اعمال قالب جدید اضافه کن.
 
-### ۴. بکاپ و Import/Export
+### ۴. تغییر در ذخیره‌سازی یا نمایش
+
+- ذخیره‌سازی در سبد خرید: `WooCommerceIntegration::add_cart_item_data()`.
+- نمایش در سبد خرید: `WooCommerceIntegration::display_cart_item_data()`.
+- ذخیره در سفارش: `WooCommerceIntegration::add_order_item_meta()`.
+- نمایش در پنل کاربری/ادمین: `OrderDisplay` کلاس.
+
+### ۵. بکاپ و Import/Export
 
 - از متدهای `export_json` و `import_json` در `template-editor.php` استفاده کن.
 - داده‌های خروجی شامل تمام پالت‌ها و فیلدهای آنهاست.
@@ -216,6 +297,8 @@ modules/product-options/
 - **خطاهای رایج:** `getFieldsData is not defined` → فایل‌های JS را به‌درستی بارگذاری کن و از `window.getFieldsData` استفاده کن.
 - **ذخیره‌سازی نشدن کدها:** مطمئن شو `name`های textarea در `template-editor.php` به `code_html`, `code_css`, `code_js` تنظیم شده و در `class-ajax-handler.php` دریافت می‌شوند.
 - **نمایش فیلدها در صفحه محصول:** محصول را ویرایش کن و یک پالت به آن متصل کن. در غیر این صورت فیلدی نمایش داده نمی‌شود.
+- **قیمت پویا محاسبه نمی‌شود:** مطمئن شو `PricingEngine` در `WooCommerceIntegration` به‌درستی فراخوانی شده است.
+- **خطای دیتابیس:** جدول `wp_ezlens_option_templates` را بررسی کن و مطمئن شو `class-install.php` اجرا شده است.
 
 ---
 
@@ -225,14 +308,25 @@ modules/product-options/
 - Nonce برای تمام درخواست‌های AJAX استفاده شده است.
 - دسترسی به صفحات مدیریتی با `current_user_can('manage_options')` محافظت می‌شود.
 - فایل‌های آپلودشده با `media_handle_upload` مدیریت می‌شوند.
+- `FieldSchemaValidator` از ورود داده‌های مخرب JSON جلوگیری می‌کند.
+- کوئری‌های دیتابیس در `TemplateRepository` با `$wpdb->prepare` پارامتریک شده‌اند.
 
 ---
 
 ## 🧾 جمع‌بندی
 
-ماژول **ویژگی‌های محصول** یک سیستم کامل و انعطاف‌پذیر برای مدیریت فیلدهای سفارشی محصولات در فروشگاه ایزی‌لنز است. این ماژول با معماری ماژولار، جدا کردن مسئولیت‌ها (Separation of Concerns) و استفاده از هوک‌های استاندارد ووکامرس، به‌راحتی قابل توسعه و نگهداری است. تمام کدها در پوشه‌ی `modules/product-options/` قرار دارند و برای افزودن قابلیت‌های جدید، نیازی به تغییر در هسته‌ی اصلی پلاگین نیست.
+ماژول **ویژگی‌های محصول** یک سیستم کامل، لایه‌ای و انعطاف‌پذیر برای مدیریت فیلدهای سفارشی محصولات در فروشگاه ایزی‌لنز است. این ماژول با معماری **Repository-Service-Controller**، جدا کردن مسئولیت‌ها و استفاده از هوک‌های استاندارد ووکامرس، به‌راحتی قابل توسعه و نگهداری است. تمام کدها در پوشه‌ی `modules/product-options/` قرار دارند و برای افزودن قابلیت‌های جدید، نیازی به تغییر در هسته‌ی اصلی پلاگین نیست.
+
+### مسیرهای کلیدی برای توسعه‌دهندگان جدید
+
+- **افزودن فیلد جدید:** `template-editor-builder.php` ← `FieldSchemaValidator` ← `FieldRenderer`
+- **تغییر منطق قیمت:** `PricingEngine` ← `WooCommerceIntegration`
+- **افزودن قالب آماده:** `PresetLibrary` ← `class-preset-library-page.php`
+- **تغییر نمایش در فرانت‌اند:** `product-options.js` ← `product-options-frontend.css`
+- **تغییر نمایش در ادمین:** `template-list.php` ← `template-editor-*.php`
 
 ---
 
-**تاریخ بروزرسانی سند:** ۱۴۰۴/۰۶/۱۳  
-**نسخه سند:** 1.0.0
+**تاریخ بروزرسانی سند:** ۱۴۰۴/۰۶/۱۴  
+**نسخه سند:** 2.0.0  
+**وضعیت:** هم‌راستا با کد (Code-Aligned)

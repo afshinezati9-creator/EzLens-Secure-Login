@@ -1,0 +1,118 @@
+/* خریدار: پنل مدیریت فرآیند خرید */
+.ezpurchase-wrap {
+    max-width: 1200px;
+    padding: 20px 0;
+}
+.ezpurchase-wrap .wp-list-table th {
+    font-weight: 600;
+    color: #1e293b;
+}
+.ezpurchase-wrap .wp-list-table td {
+    vertical-align: middle;
+}
+.ezpurchase-wrap .button {
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 6px 14px;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #1e293b;
+}
+.ezpurchase-wrap .button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+.ezpurchase-wrap .button-primary {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+}
+.ezpurchase-wrap .button-primary:hover {
+    background: #1e293b;
+    border-color: #1e293b;
+}
+.ezpurchase-wrap .button-secondary {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #475569;
+}
+.ezpurchase-wrap .button-small {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+.ezpurchase-wrap .button img {
+    display: inline-block;
+    vertical-align: middle;
+    margin: -2px 4px 0 0;
+}
+.ezpurchase-wrap .tablenav {
+    margin-top: 20px;
+    text-align: center;
+}
+.ezpurchase-wrap .tablenav-pages a {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin: 0 3px;
+    background: #fff;
+    color: #1e293b;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.ezpurchase-wrap .tablenav-pages a:hover {
+    background: #f1f5f9;
+}
+.ezpurchase-wrap .tablenav-pages .current {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+}
+.ezpurchase-wrap .tablenav-pages .dots {
+    padding: 6px 10px;
+}
+.ezpurchase-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border-right: 4px solid #0f172a;
+    max-width: 400px;
+    z-index: 9999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.ezpurchase-toast.show {
+    display: block;
+    opacity: 1;
+}
+.ezpurchase-toast.success {
+    border-right-color: #10b981;
+}
+.ezpurchase-toast.error {
+    border-right-color: #ef4444;
+}
+.ezpurchase-toast .close {
+    float: left;
+    cursor: pointer;
+    color: #94a3b8;
+    margin-right: 10px;
+}
+@media (max-width: 768px) {
+    .ezpurchase-wrap table {
+        font-size: 13px;
+    }
+    .ezpurchase-wrap .button {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    .ezpurchase-wrap .wp-list-table th,
+    .ezpurchase-wrap .wp-list-table td {
+        padding: 8px 6px;
+    }
+}

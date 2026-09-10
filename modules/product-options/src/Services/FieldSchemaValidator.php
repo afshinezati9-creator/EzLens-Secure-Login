@@ -11,6 +11,11 @@ if (!defined('ABSPATH')) {
  * Keeps untrusted builder payloads constrained to supported field shapes.
  */
 final class FieldSchemaValidator {
+    /**
+     * Keys starting with "_code_" are reserved internal fields (builder metadata).
+     * They are skipped by renderers, sanitizers, validators, and pricing loops.
+     * @see EzLens_Product_Options_Helpers::is_code_field_key()
+     */
     private const ALLOWED_TYPES = [
         'text','email','phone','textarea','number','select','radio','checkbox',
         'image_select','color','date','time','upload','heading','divider','spacer',

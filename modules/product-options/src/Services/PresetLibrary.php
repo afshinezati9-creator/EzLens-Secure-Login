@@ -1,7 +1,10 @@
 <?php
-if (!defined('ABSPATH')) exit;
 
 namespace EzLens\ProductOptions\Services;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Built-in starter templates for Iranian optical and vision-care stores.
