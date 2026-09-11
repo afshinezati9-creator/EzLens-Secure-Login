@@ -1,0 +1,766 @@
+/**
+ * ============================================================
+ * EzLens – صفحه محصول v3
+ * آیکون مینیمال | نظرات AJAX | خریدار/بازدیدکننده | فیکس hover
+ * شورت‌کد: [ezlens_product]
+ * ============================================================
+ */
+
+/* ----- AJAX ثبت نظر ----- */
+add_action('wp_ajax_ezp_submit_review', 'ezp_submit_review');
+add_action('wp_ajax_nopriv_ezp_submit_review', 'ezp_submit_review');
+function ezp_submit_review() {
+    check_ajax_referer('ezp_review_nonce', 'nonce');
+
+    // Honeypot
+    if (!empty($_POST['ezp_hp'])) {
+        wp_send_json_error(['message' => 'درخواست نامعتبر است.'], 400);
+    }
+
+    $product_id = absint($_POST['product_id'] ?? 0);
+    $rating     = absint($_POST['rating'] ?? 0);
+    $content    = isset($_POST['comment']) ? sanitize_textarea_field(wp_unslash($_POST['comment'])) : '';
+    $author     = isset($_POST['author']) ? sanitize_text_field(wp_unslash($_POST['author'])) : '';
+    $email      = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
+
+    if (!$product_id || get_post_type($product_id) !== 'product') {
+        wp_send_json_error(['message' => 'محصول نامعتبر است.']);
+    }
+    if ($rating < 1 || $rating > 5) {
+        wp_send_json_error(['message' => 'لطفاً امتیاز ۱ تا ۵ را انتخاب کنید.']);
+    }
+    if (mb_strlen($content) < 5) {
+        wp_send_json_error(['message' => 'متن نظر باید حداقل ۵ کاراکتر باشد.']);
+    }
+
+    if (is_user_logged_in()) {
+        $user   = wp_get_current_user();
+        $author = $user->display_name;
+        $email  = $user->user_email;
+        $uid    = $user->ID;
+    } else {
+        $uid = 0;
+        if ($author === '' || $email === '' || !is_email($email)) {
+            wp_send_json_error(['message' => 'نام و ایمیل معتبر الزامی است.']);
+        }
+    }
+
+    // محدودیت تکرار ساده (همان ایمیل + همان محصول در ۲۴ ساعت)
+    $recent = get_comments([
+        'post_id'    => $product_id,
+        'author_email' => $email,
+        'number'     => 1,
+        'date_query' => [['after' => '24 hours ago']],
+        'status'     => 'all',
+    ]);
+    if (!empty($recent)) {
+        wp_send_json_error(['message' => 'شما اخیراً برای این محصول نظر ثبت کرده‌اید. لطفاً بعداً تلاش کنید.']);
+    }
+
+    $approved = (is_user_logged_in() && current_user_can('moderate_comments')) ? 1 : 0;
+    // اگر moderation فعال باشد، در انتظار تأیید
+    if (get_option('comment_moderation') || get_option('comment_previously_approved') === '1') {
+        // پیش‌فرض: اگر قبلاً تأیید شده، خودکار؛ وگرنه pending
+        $approved = 0;
+        if (is_user_logged_in()) {
+            $prev = get_comments(['user_id' => $uid, 'status' => 'approve', 'number' => 1, 'count' => true]);
+            if ($prev > 0 && !get_option('comment_moderation')) {
+                $approved = 1;
+            }
+        }
+    }
+
+    $comment_id = wp_insert_comment([
+        'comment_post_ID'      => $product_id,
+        'comment_author'       => $author,
+        'comment_author_email' => $email,
+        'comment_content'      => $content,
+        'comment_type'         => 'review',
+        'comment_parent'       => 0,
+        'user_id'              => $uid,
+        'comment_approved'     => $approved ? 1 : 0,
+        'comment_agent'        => substr(isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '', 0, 200),
+        'comment_author_IP'    => isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '',
+    ]);
+
+    if (!$comment_id || is_wp_error($comment_id)) {
+        wp_send_json_error(['message' => 'خطا در ثبت نظر. دوباره تلاش کنید.']);
+    }
+
+    update_comment_meta($comment_id, 'rating', $rating);
+
+    // خریدار؟
+    $is_buyer = false;
+    if (function_exists('wc_customer_bought_product')) {
+        $is_buyer = wc_customer_bought_product($email, $uid, $product_id);
+    }
+    update_comment_meta($comment_id, 'ezp_verified_buyer', $is_buyer ? '1' : '0');
+
+    if (function_exists('wc_update_product_rating_counts')) {
+        // به‌روزرسانی آمار امتیاز ووکامرس
+        $product = wc_get_product($product_id);
+        if ($product && $approved) {
+            WC_Comments::clear_transients($product_id);
+        }
+    }
+
+    $msg = $approved
+        ? 'نظر شما با موفقیت ثبت شد.'
+        : 'نظر شما ثبت شد و پس از تأیید نمایش داده می‌شود.';
+
+    wp_send_json_success([
+        'message'   => $msg,
+        'approved'  => (bool) $approved,
+        'is_buyer'  => $is_buyer,
+    ]);
+}
+
+/* ----- شورت‌کد ----- */
+add_shortcode('ezlens_product', function () {
+    if (!function_exists('is_product') || !is_product()) {
+        return '<p style="text-align:center;color:#64748b">این بخش فقط در صفحه محصول نمایش داده می‌شود.</p>';
+    }
+
+    global $product;
+    if (!$product || !is_a($product, 'WC_Product')) {
+        $product = wc_get_product(get_the_ID());
+    }
+    if (!$product) return '';
+
+    $id           = $product->get_id();
+    $title        = $product->get_name();
+    $price_html   = $product->get_price_html();
+    $short_desc   = $product->get_short_description();
+    $description  = $product->get_description();
+    $sku          = $product->get_sku();
+    $in_stock     = $product->is_in_stock();
+    $stock_qty    = $product->get_stock_quantity();
+    $permalink    = get_permalink($id);
+    $main_image   = wp_get_attachment_image_url($product->get_image_id(), 'large');
+    $gallery_ids  = $product->get_gallery_image_ids();
+    $cats         = wc_get_product_category_list($id, '، ');
+    $tags         = wc_get_product_tag_list($id, '، ');
+    $rating       = (float) $product->get_average_rating();
+    $review_count = (int) $product->get_review_count();
+    $is_on_sale   = $product->is_on_sale();
+    $is_variable  = $product->is_type('variable');
+    $add_url      = $product->add_to_cart_url();
+    $weight       = $product->get_weight();
+    $wa = 'https://wa.me/98919842069?text=' . rawurlencode('سلام، درباره این محصول سوال دارم: ' . $title . ' – ' . $permalink);
+    $review_nonce = wp_create_nonce('ezp_review_nonce');
+    $ajax_url     = admin_url('admin-ajax.php');
+
+    $images = [];
+    if ($main_image) $images[] = $main_image;
+    foreach ($gallery_ids as $gid) {
+        $url = wp_get_attachment_image_url($gid, 'large');
+        if ($url) $images[] = $url;
+    }
+    if (empty($images)) $images[] = wc_placeholder_img_src('large');
+
+    $attributes_html = '';
+    foreach ($product->get_attributes() as $attribute) {
+        if (!$attribute->get_visible()) continue;
+        $name = wc_attribute_label($attribute->get_name());
+        if ($attribute->is_taxonomy()) {
+            $terms = wc_get_product_terms($id, $attribute->get_name(), ['fields' => 'names']);
+            $val = implode('، ', $terms);
+        } else {
+            $val = implode('، ', $attribute->get_options());
+        }
+        if ($val) {
+            $attributes_html .= '<div class="ezp-attr"><span class="k">' . esc_html($name) . '</span><span class="v">' . esc_html($val) . '</span></div>';
+        }
+    }
+    if ($sku) $attributes_html .= '<div class="ezp-attr"><span class="k">شناسه کالا</span><span class="v">' . esc_html($sku) . '</span></div>';
+    if ($weight) $attributes_html .= '<div class="ezp-attr"><span class="k">وزن</span><span class="v">' . esc_html($weight) . ' ' . esc_html(get_option('woocommerce_weight_unit')) . '</span></div>';
+
+    $comments = get_comments([
+        'post_id' => $id,
+        'status'  => 'approve',
+        'type'    => 'review',
+        'number'  => 30,
+        'orderby' => 'comment_date_gmt',
+        'order'   => 'DESC',
+    ]);
+
+    $rating_counts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+    foreach (get_comments(['post_id' => $id, 'status' => 'approve', 'type' => 'review', 'number' => 0]) as $rev) {
+        $r = (int) get_comment_meta($rev->comment_ID, 'rating', true);
+        if ($r >= 1 && $r <= 5) $rating_counts[$r]++;
+    }
+    $total_rated = array_sum($rating_counts);
+
+    $related_ids = wc_get_related_products($id, 4);
+    $related_html = '';
+    foreach ($related_ids as $rid) {
+        $rp = wc_get_product($rid);
+        if (!$rp) continue;
+        $rimg = wp_get_attachment_image_url($rp->get_image_id(), 'woocommerce_thumbnail') ?: wc_placeholder_img_src();
+        $related_html .= '<a class="ezp-rel-card" href="' . esc_url(get_permalink($rid)) . '">';
+        $related_html .= '<div class="ezp-rel-img"><img src="' . esc_url($rimg) . '" alt="" loading="lazy"></div>';
+        $related_html .= '<div class="ezp-rel-body"><div class="ezp-rel-title">' . esc_html($rp->get_name()) . '</div>';
+        $related_html .= '<div class="ezp-rel-price">' . $rp->get_price_html() . '</div></div></a>';
+    }
+
+    // SVG icons (minimal)
+    $ico_check = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>';
+    $ico_truck = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
+    $ico_chat  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+    $ico_wa    = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+
+    ob_start();
+    ?>
+<div class="ezp" dir="rtl" data-product-id="<?php echo esc_attr($id); ?>">
+<style>
+.ezp{--blue:#031f8a;--blue2:#011663;--cta:#ff6b6d;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e8edf5;--radius:18px;--shadow:0 14px 40px -18px rgba(3,31,138,.15);font-family:IRANYekan,Tahoma,Arial,sans-serif;color:var(--text);line-height:1.75;max-width:1500px;margin:0 auto}
+.ezp *,.ezp *::before,.ezp *::after{box-sizing:border-box}
+.ezp img{max-width:100%;display:block}
+.ezp a{text-decoration:none;color:inherit}
+
+.ezp-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(1.2rem,3vw,2.5rem);background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:clamp(1rem,2.5vw,2rem);margin-bottom:1.25rem}
+@media(max-width:900px){.ezp-grid{grid-template-columns:1fr}}
+
+.ezp-main{position:relative;border-radius:14px;overflow:hidden;background:#fafbfc;border:1px solid var(--border);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.ezp-main img{width:100%;height:100%;object-fit:contain}
+.ezp-badge{position:absolute;top:12px;right:12px;background:var(--cta);color:#fff!important;font-size:.72rem;font-weight:700;padding:5px 10px;border-radius:10px;z-index:2}
+.ezp-thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ezp-thumbs button{width:64px;height:64px;padding:0;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;opacity:.75;transition:all .2s}
+.ezp-thumbs button.is-on,.ezp-thumbs button:hover{opacity:1;border-color:var(--blue)}
+.ezp-thumbs img{width:100%;height:100%;object-fit:cover}
+
+.ezp-cats{font-size:.78rem;color:var(--muted);margin-bottom:.35rem}
+.ezp-cats a{color:var(--blue);font-weight:600}
+.ezp-title{font-size:clamp(1.25rem,2.4vw,1.85rem);font-weight:700;line-height:1.4;margin:0 0 .55rem;color:var(--text)}
+.ezp-rating-row{display:flex;align-items:center;gap:10px;margin-bottom:.65rem;font-size:.85rem;color:var(--muted);flex-wrap:wrap}
+.ezp-stars{color:#fbbf24;letter-spacing:1px}
+.ezp-price{font-size:clamp(1.2rem,2vw,1.55rem);font-weight:700;color:var(--blue);margin:0 0 .85rem}
+.ezp-price del{color:#94a3b8;font-size:.9rem;font-weight:500}
+.ezp-price ins{text-decoration:none;color:var(--cta)}
+
+.ezp-short{font-size:.9rem;color:var(--muted);line-height:1.85;margin:0 0 1rem;padding:.9rem 1rem;background:#f8fafc;border:1px solid var(--border);border-radius:12px;border-right:3px solid var(--blue)}
+.ezp-stock{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;margin-bottom:1rem;padding:5px 12px;border-radius:999px}
+.ezp-stock.in{background:rgba(16,185,129,.1);color:#059669}
+.ezp-stock.out{background:rgba(239,68,68,.1);color:#dc2626}
+.ezp-stock i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.ezp-stock.in i{background:#10b981}.ezp-stock.out i{background:#ef4444}
+
+/* Trust – فقط آیکون + متن جدا */
+.ezp-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.ezp-trust-item{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center}
+.ezp-trust-item .ic{display:flex;justify-content:center;margin-bottom:6px;color:var(--blue)}
+.ezp-trust-item .ic svg{display:block}
+.ezp-trust-item .t{font-size:.72rem;font-weight:700;color:var(--text);line-height:1.4}
+.ezp-trust-item .s{font-size:.65rem;color:var(--muted);margin-top:2px}
+
+.ezp-cart{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:14px;margin-bottom:1rem;background:#f8fafc;border:1px solid var(--border);border-radius:14px}
+.ezp-qty{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
+.ezp-qty button{width:42px;height:46px;border:none;background:#fff5f5;color:var(--cta);font-weight:700;font-size:1.1rem;cursor:pointer}
+.ezp-qty button:hover{background:#ffe4e4;color:var(--cta)}
+.ezp-qty input{width:52px;height:46px;border:none;text-align:center;font-weight:700;font-size:.95rem;color:var(--text);font-family:inherit;outline:none}
+
+/* دکمه‌ها – hover بدون محو شدن متن */
+.ezp-add{
+  flex:1;min-width:160px;height:48px;border:none;border-radius:12px;cursor:pointer;
+  background:var(--blue);color:#fff!important;font-family:inherit;font-weight:700;font-size:.95rem;
+  box-shadow:0 10px 22px -8px rgba(3,31,138,.4);transition:background .2s,transform .2s,box-shadow .2s;
+}
+.ezp-add:hover,.ezp-add:focus{
+  background:var(--blue2)!important;color:#fff!important;transform:translateY(-1px);
+  box-shadow:0 12px 26px -8px rgba(3,31,138,.5);
+}
+.ezp-add:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+.ezp-wa{
+  height:48px;padding:0 16px;border-radius:12px;border:1.5px solid #a7f3d0;background:#ecfdf5;
+  color:#047857!important;font-family:inherit;font-weight:700;font-size:.86rem;
+  display:inline-flex;align-items:center;gap:8px;transition:background .2s,border-color .2s,color .2s;
+}
+.ezp-wa svg{stroke:#047857;flex-shrink:0}
+.ezp-wa:hover,.ezp-wa:focus{
+  background:#d1fae5!important;border-color:#059669!important;color:#065f46!important;
+}
+.ezp-wa:hover svg{stroke:#065f46}
+
+.ezp-meta{font-size:.82rem;color:var(--muted);line-height:1.95;border-top:1px dashed var(--border);padding-top:12px}
+.ezp-meta a{color:var(--blue);font-weight:600}
+.ezp-meta span{display:block}
+
+/* Tabs */
+.ezp-tabs{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(3,31,138,.05);overflow:hidden;margin-bottom:1.25rem}
+.ezp-tab-nav{display:flex;flex-wrap:wrap;background:#f8fafc;border-bottom:1px solid var(--border)}
+.ezp-tab-nav button{
+  border:none;background:transparent;font-family:inherit;font-weight:700;font-size:.86rem;
+  color:var(--muted)!important;padding:14px 20px;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s,background .2s;
+}
+.ezp-tab-nav button:hover{color:var(--blue)!important;background:rgba(3,31,138,.04)}
+.ezp-tab-nav button.is-on{color:var(--blue)!important;border-bottom-color:var(--blue);background:transparent}
+.ezp-tab-panel{display:none;padding:1.3rem 1.5rem 1.6rem;font-size:.92rem;line-height:1.9}
+.ezp-tab-panel.is-on{display:block}
+.ezp-tab-panel h3{font-size:1.05rem;color:var(--blue);margin:0 0 .8rem}
+
+.ezp-attr{display:flex;justify-content:space-between;gap:1rem;padding:11px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.ezp-attr:last-child{border-bottom:none}
+.ezp-attr .k{font-weight:700;color:var(--blue);min-width:130px}
+.ezp-attr .v{color:var(--text);text-align:left}
+
+/* Reviews */
+.ezp-rev-summary{display:grid;grid-template-columns:180px 1fr;gap:1.5rem;padding:1.2rem;background:#f8fafc;border:1px solid var(--border);border-radius:14px;margin-bottom:1.3rem}
+@media(max-width:640px){.ezp-rev-summary{grid-template-columns:1fr}}
+.ezp-rev-score{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ezp-rev-score .num{font-size:2.6rem;font-weight:700;color:var(--blue);line-height:1}
+.ezp-rev-score .stars{color:#fbbf24;font-size:1.1rem;margin:.35rem 0}
+.ezp-rev-score .cnt{font-size:.8rem;color:var(--muted)}
+.ezp-rev-bars{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.ezp-rev-bar{display:grid;grid-template-columns:52px 1fr 40px;align-items:center;gap:8px;font-size:.78rem;color:var(--muted)}
+.ezp-rev-bar .track{height:7px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.ezp-rev-bar .fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);border-radius:99px}
+
+.ezp-rev-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1.4rem}
+.ezp-rev-item{border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:#fff}
+.ezp-rev-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.ezp-rev-user{display:flex;align-items:center;gap:10px}
+.ezp-rev-avatar{width:40px;height:40px;border-radius:50%;background:rgba(3,31,138,.1);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0}
+.ezp-rev-name{font-weight:700;font-size:.88rem;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ezp-rev-date{font-size:.75rem;color:var(--muted);margin-top:2px}
+.ezp-rev-stars{color:#fbbf24;font-size:.85rem}
+
+/* بج خریدار / بازدیدکننده */
+.ezp-badge-buyer{
+  display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;
+  color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;padding:2px 8px;border-radius:999px;
+}
+.ezp-badge-visitor{
+  display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;
+  color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;padding:2px 8px;border-radius:999px;
+}
+.ezp-rev-body{font-size:.88rem;color:var(--text);line-height:1.8}
+.ezp-rev-empty{text-align:center;padding:1.5rem;color:var(--muted);font-size:.9rem;background:#f8fafc;border-radius:12px;border:1px dashed var(--border)}
+
+.ezp-rev-form{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.3rem}
+.ezp-rev-form h4{margin:0 0 1rem;font-size:1rem;color:var(--blue)}
+.ezp-rev-form .form-row{margin-bottom:.85rem}
+.ezp-rev-form label{display:block;font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:5px}
+.ezp-rev-form input[type="text"],
+.ezp-rev-form input[type="email"],
+.ezp-rev-form textarea{
+  width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+  font-family:inherit;font-size:.88rem;background:#fff;color:var(--text);outline:none;
+}
+.ezp-rev-form input:focus,.ezp-rev-form textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(3,31,138,.08)}
+.ezp-rev-form textarea{min-height:110px;resize:vertical}
+.ezp-star-select{display:flex;gap:4px;flex-direction:row-reverse;justify-content:flex-end}
+.ezp-star-select input{position:absolute;opacity:0;pointer-events:none}
+.ezp-star-select label{font-size:1.45rem;color:#cbd5e1;cursor:pointer;transition:color .15s;line-height:1}
+.ezp-star-select input:checked ~ label,
+.ezp-star-select label:hover,
+.ezp-star-select label:hover ~ label{color:#fbbf24}
+.ezp-hp{position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden}
+.ezp-rev-submit{
+  background:var(--blue);color:#fff!important;border:none;border-radius:12px;padding:12px 22px;
+  font-family:inherit;font-weight:700;font-size:.9rem;cursor:pointer;transition:background .2s;
+}
+.ezp-rev-submit:hover{background:var(--blue2)!important;color:#fff!important}
+.ezp-rev-submit:disabled{opacity:.6;cursor:not-allowed}
+
+/* Popup toast */
+.ezp-toast-wrap{position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.45);opacity:0;visibility:hidden;transition:all .25s}
+.ezp-toast-wrap.show{opacity:1;visibility:visible}
+.ezp-toast{
+  background:#fff;border-radius:16px;padding:1.4rem 1.5rem;max-width:380px;width:100%;
+  box-shadow:0 20px 50px rgba(0,0,0,.18);text-align:center;transform:translateY(12px);transition:transform .25s;
+}
+.ezp-toast-wrap.show .ezp-toast{transform:translateY(0)}
+.ezp-toast .ico{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.ezp-toast.ok .ico{background:#ecfdf5;color:#059669}
+.ezp-toast.err .ico{background:#fef2f2;color:#dc2626}
+.ezp-toast .msg{font-size:.95rem;font-weight:600;color:var(--text);line-height:1.7;margin-bottom:1rem}
+.ezp-toast .okbtn{
+  background:var(--blue);color:#fff!important;border:none;border-radius:10px;padding:10px 22px;
+  font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;
+}
+.ezp-toast .okbtn:hover{background:var(--blue2)!important;color:#fff!important}
+
+/* Related */
+.ezp-related{margin:.5rem 0 1rem}
+.ezp-related h3{font-size:1.15rem;font-weight:700;color:var(--blue);margin:0 0 1rem}
+.ezp-rel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.ezp-rel-grid{grid-template-columns:repeat(2,1fr)}}
+.ezp-rel-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .22s,box-shadow .22s;display:flex;flex-direction:column}
+.ezp-rel-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.ezp-rel-img{aspect-ratio:1;background:#fafbfc;display:flex;align-items:center;justify-content:center;padding:8px}
+.ezp-rel-img img{width:100%;height:100%;object-fit:contain}
+.ezp-rel-body{padding:10px 12px 14px}
+.ezp-rel-title{font-size:.82rem;font-weight:700;line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ezp-rel-price{font-size:.88rem;font-weight:700;color:var(--blue)}
+
+.ezp-help-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:.5rem}
+@media(max-width:640px){.ezp-help-grid{grid-template-columns:1fr}}
+.ezp-help-card{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:14px}
+.ezp-help-card h4{margin:0 0 6px;font-size:.9rem;color:var(--blue)}
+.ezp-help-card p{margin:0;font-size:.84rem;color:var(--muted);line-height:1.75}
+
+@media(max-width:640px){
+  .ezp-cart{flex-direction:column;align-items:stretch}
+  .ezp-add,.ezp-wa{width:100%;justify-content:center}
+  .ezp-tab-nav button{padding:12px 14px;font-size:.78rem}
+}
+</style>
+
+<div class="ezp-grid">
+  <div class="ezp-gallery">
+    <div class="ezp-main">
+      <?php if ($is_on_sale) : ?><span class="ezp-badge">فروش ویژه</span><?php endif; ?>
+      <img id="ezpMainImg" src="<?php echo esc_url($images[0]); ?>" alt="<?php echo esc_attr($title); ?>" width="600" height="600">
+    </div>
+    <?php if (count($images) > 1) : ?>
+    <div class="ezp-thumbs" id="ezpThumbs">
+      <?php foreach ($images as $i => $img) : ?>
+      <button type="button" class="<?php echo $i === 0 ? 'is-on' : ''; ?>" data-src="<?php echo esc_url($img); ?>">
+        <img src="<?php echo esc_url($img); ?>" alt="" width="64" height="64" loading="lazy">
+      </button>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+  </div>
+
+  <div class="ezp-info">
+    <?php if ($cats) : ?><div class="ezp-cats"><?php echo wp_kses_post($cats); ?></div><?php endif; ?>
+    <h1 class="ezp-title"><?php echo esc_html($title); ?></h1>
+
+    <div class="ezp-rating-row">
+      <?php if ($review_count > 0) : ?>
+        <span class="ezp-stars"><?php echo str_repeat('★', (int) round($rating)) . str_repeat('☆', 5 - (int) round($rating)); ?></span>
+        <span><?php echo esc_html(number_format($rating, 1)); ?> از ۵</span>
+        <a href="#ezp-tab-reviews" class="ezp-goto-reviews" style="color:var(--blue);font-weight:600">(<?php echo (int) $review_count; ?> نظر)</a>
+      <?php else : ?>
+        <span class="ezp-stars" style="color:#cbd5e1">☆☆☆☆☆</span>
+        <span>هنوز نظری ثبت نشده</span>
+      <?php endif; ?>
+    </div>
+
+    <div class="ezp-price"><?php echo $price_html; ?></div>
+
+    <div class="ezp-stock <?php echo $in_stock ? 'in' : 'out'; ?>">
+      <i></i> <?php echo $in_stock ? 'موجود در انبار' : 'ناموجود'; ?>
+      <?php if ($in_stock && $stock_qty !== null && $stock_qty > 0 && $stock_qty <= 5) : ?>
+        <span style="font-weight:500">— تنها <?php echo (int) $stock_qty; ?> عدد</span>
+      <?php endif; ?>
+    </div>
+
+    <div class="ezp-trust">
+      <div class="ezp-trust-item"><div class="ic"><?php echo $ico_check; ?></div><div class="t">اصالت کالا</div><div class="s">تضمین کیفیت</div></div>
+      <div class="ezp-trust-item"><div class="ic"><?php echo $ico_truck; ?></div><div class="t">ارسال سریع</div><div class="s">سراسر کشور</div></div>
+      <div class="ezp-trust-item"><div class="ic"><?php echo $ico_chat; ?></div><div class="t">مشاوره تخصصی</div><div class="s">پشتیبانی واقعی</div></div>
+    </div>
+
+    <?php if ($short_desc) : ?><div class="ezp-short"><?php echo wp_kses_post(wpautop($short_desc)); ?></div><?php endif; ?>
+
+    <div class="ezp-cart">
+      <?php if ($is_variable) : ?>
+        <a class="ezp-add" href="#ezp-variations" style="display:flex;align-items:center;justify-content:center">انتخاب گزینه‌ها و خرید</a>
+      <?php elseif ($in_stock) : ?>
+        <div class="ezp-qty">
+          <button type="button" id="ezpMinus">−</button>
+          <input type="number" id="ezpQty" value="1" min="1" max="99">
+          <button type="button" id="ezpPlus">+</button>
+        </div>
+        <button type="button" class="ezp-add" id="ezpAddBtn" data-product-id="<?php echo esc_attr($id); ?>" data-url="<?php echo esc_url($add_url); ?>">افزودن به سبد خرید</button>
+      <?php else : ?>
+        <button type="button" class="ezp-add" disabled>ناموجود</button>
+      <?php endif; ?>
+      <a class="ezp-wa" href="<?php echo esc_url($wa); ?>" target="_blank" rel="noopener"><?php echo $ico_wa; ?> مشاوره واتساپ</a>
+    </div>
+
+    <?php if ($is_variable) : ?>
+      <div id="ezp-variations" style="margin-bottom:1rem"><?php woocommerce_template_single_add_to_cart(); ?></div>
+    <?php endif; ?>
+
+    <div class="ezp-meta">
+      <?php if ($sku) : ?><span>شناسه: <strong><?php echo esc_html($sku); ?></strong></span><?php endif; ?>
+      <?php if ($cats) : ?><span>دسته‌بندی: <?php echo wp_kses_post($cats); ?></span><?php endif; ?>
+      <?php if ($tags) : ?><span>برچسب: <?php echo wp_kses_post($tags); ?></span><?php endif; ?>
+    </div>
+  </div>
+</div>
+
+<div class="ezp-tabs" id="ezpTabs">
+  <div class="ezp-tab-nav">
+    <button type="button" class="is-on" data-tab="desc">توضیحات</button>
+    <?php if ($attributes_html) : ?><button type="button" data-tab="attrs">مشخصات</button><?php endif; ?>
+    <button type="button" data-tab="reviews">نظرات<?php echo $review_count ? ' (' . (int) $review_count . ')' : ''; ?></button>
+    <button type="button" data-tab="help">راهنما و ارسال</button>
+  </div>
+
+  <div class="ezp-tab-panel is-on" id="ezp-tab-desc">
+    <h3>توضیحات محصول</h3>
+    <?php echo $description ? wp_kses_post($description) : '<p style="color:#64748b">توضیحات تکمیلی ثبت نشده است.</p>'; ?>
+  </div>
+
+  <?php if ($attributes_html) : ?>
+  <div class="ezp-tab-panel" id="ezp-tab-attrs">
+    <h3>مشخصات فنی</h3>
+    <?php echo $attributes_html; ?>
+  </div>
+  <?php endif; ?>
+
+  <div class="ezp-tab-panel" id="ezp-tab-reviews">
+    <h3>نظرات کاربران</h3>
+
+    <div class="ezp-rev-summary">
+      <div class="ezp-rev-score">
+        <div class="num"><?php echo $review_count ? esc_html(number_format($rating, 1)) : '—'; ?></div>
+        <div class="stars"><?php echo $review_count ? str_repeat('★', (int) round($rating)) . str_repeat('☆', 5 - (int) round($rating)) : '☆☆☆☆☆'; ?></div>
+        <div class="cnt">از مجموع <?php echo (int) $review_count; ?> نظر</div>
+      </div>
+      <div class="ezp-rev-bars">
+        <?php for ($s = 5; $s >= 1; $s--) :
+          $pct = $total_rated > 0 ? round(($rating_counts[$s] / $total_rated) * 100) : 0; ?>
+        <div class="ezp-rev-bar">
+          <span><?php echo $s; ?> ستاره</span>
+          <div class="track"><div class="fill" style="width:<?php echo $pct; ?>%"></div></div>
+          <span><?php echo $pct; ?>٪</span>
+        </div>
+        <?php endfor; ?>
+      </div>
+    </div>
+
+    <div class="ezp-rev-list" id="ezpRevList">
+      <?php if ($comments) :
+        foreach ($comments as $c) :
+          $cr = (int) get_comment_meta($c->comment_ID, 'rating', true);
+          $buyer_meta = get_comment_meta($c->comment_ID, 'ezp_verified_buyer', true);
+          $is_buyer = ($buyer_meta === '1');
+          if ($buyer_meta === '' && function_exists('wc_customer_bought_product')) {
+              $is_buyer = wc_customer_bought_product($c->comment_author_email, (int) $c->user_id, $id);
+          }
+          $initial = mb_substr($c->comment_author, 0, 1);
+      ?>
+      <div class="ezp-rev-item">
+        <div class="ezp-rev-top">
+          <div class="ezp-rev-user">
+            <div class="ezp-rev-avatar"><?php echo esc_html($initial); ?></div>
+            <div>
+              <div class="ezp-rev-name">
+                <?php echo esc_html($c->comment_author); ?>
+                <?php if ($is_buyer) : ?>
+                  <span class="ezp-badge-buyer">خریدار</span>
+                <?php else : ?>
+                  <span class="ezp-badge-visitor">بازدیدکننده</span>
+                <?php endif; ?>
+              </div>
+              <div class="ezp-rev-date"><?php echo esc_html(get_comment_date('Y/m/d', $c)); ?></div>
+            </div>
+          </div>
+          <?php if ($cr) : ?><div class="ezp-rev-stars"><?php echo str_repeat('★', $cr) . str_repeat('☆', 5 - $cr); ?></div><?php endif; ?>
+        </div>
+        <div class="ezp-rev-body"><?php echo wp_kses_post(wpautop($c->comment_content)); ?></div>
+      </div>
+      <?php endforeach; else : ?>
+        <div class="ezp-rev-empty">هنوز نظری ثبت نشده. اولین نفر باشید.</div>
+      <?php endif; ?>
+    </div>
+
+    <?php if (comments_open($id)) : ?>
+    <div class="ezp-rev-form">
+      <h4>ثبت نظر شما</h4>
+      <form id="ezpReviewForm" novalidate>
+        <input type="text" name="ezp_hp" class="ezp-hp" tabindex="-1" autocomplete="off">
+        <input type="hidden" name="product_id" value="<?php echo esc_attr($id); ?>">
+
+        <div class="form-row">
+          <label>امتیاز شما</label>
+          <div class="ezp-star-select">
+            <?php for ($i = 5; $i >= 1; $i--) : ?>
+              <input type="radio" name="rating" id="ezpStar<?php echo $i; ?>" value="<?php echo $i; ?>">
+              <label for="ezpStar<?php echo $i; ?>">★</label>
+            <?php endfor; ?>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="ezpComment">متن نظر</label>
+          <textarea name="comment" id="ezpComment" required placeholder="تجربه خود را بنویسید..."></textarea>
+        </div>
+
+        <?php if (!is_user_logged_in()) : ?>
+        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label for="ezpAuthor">نام</label>
+            <input type="text" name="author" id="ezpAuthor" required>
+          </div>
+          <div>
+            <label for="ezpEmail">ایمیل</label>
+            <input type="email" name="email" id="ezpEmail" required>
+          </div>
+        </div>
+        <?php endif; ?>
+
+        <button type="submit" class="ezp-rev-submit" id="ezpRevSubmit">ارسال نظر</button>
+      </form>
+    </div>
+    <?php endif; ?>
+  </div>
+
+  <div class="ezp-tab-panel" id="ezp-tab-help">
+    <h3>راهنمای خرید و ارسال</h3>
+    <div class="ezp-help-grid">
+      <div class="ezp-help-card"><h4>ارسال سفارش</h4><p>آماده‌سازی محصولات آماده معمولاً ۱ تا ۲ روز کاری و سفارش‌های لابراتواری ۳ تا ۷ روز کاری زمان می‌برد.</p></div>
+      <div class="ezp-help-card"><h4>اصالت و گارانتی</h4><p>محصولات اصل هستند. در صورت مغایرت یا مشکل کیفی، طبق شرایط گارانتی پیگیری می‌شود.</p></div>
+      <div class="ezp-help-card"><h4>مشاوره تخصصی</h4><p>قبل از خرید لنز یا عدسی می‌توانید از طریق واتساپ مشاوره رایگان بگیرید.</p></div>
+      <div class="ezp-help-card"><h4>مرجوعی</h4><p>کالای آماده‌ی دست‌نخورده معمولاً تا ۷ روز قابل بررسی است. محصولات سفارشی مشمول شرایط خاص‌اند.</p></div>
+    </div>
+  </div>
+</div>
+
+<?php if ($related_html) : ?>
+<div class="ezp-related">
+  <h3>محصولات مرتبط</h3>
+  <div class="ezp-rel-grid"><?php echo $related_html; ?></div>
+</div>
+<?php endif; ?>
+
+<!-- Toast popup -->
+<div class="ezp-toast-wrap" id="ezpToast" aria-live="polite">
+  <div class="ezp-toast" id="ezpToastBox">
+    <div class="ico" id="ezpToastIco"></div>
+    <div class="msg" id="ezpToastMsg"></div>
+    <button type="button" class="okbtn" id="ezpToastClose">باشه</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root = document.querySelector('.ezp');
+  if(!root) return;
+  var ajaxUrl = <?php echo wp_json_encode($ajax_url); ?>;
+  var nonce = <?php echo wp_json_encode($review_nonce); ?>;
+
+  /* Gallery */
+  var main = root.querySelector('#ezpMainImg');
+  root.querySelectorAll('#ezpThumbs button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      root.querySelectorAll('#ezpThumbs button').forEach(function(b){ b.classList.remove('is-on'); });
+      btn.classList.add('is-on');
+      if(main) main.src = btn.getAttribute('data-src');
+    });
+  });
+
+  /* Qty */
+  var qty = root.querySelector('#ezpQty');
+  var minus = root.querySelector('#ezpMinus');
+  var plus = root.querySelector('#ezpPlus');
+  if(qty && minus && plus){
+    minus.addEventListener('click', function(){ qty.value = Math.max(1,(parseInt(qty.value,10)||1)-1); });
+    plus.addEventListener('click', function(){ qty.value = Math.min(99,(parseInt(qty.value,10)||1)+1); });
+  }
+
+  /* Add to cart */
+  var addBtn = root.querySelector('#ezpAddBtn');
+  if(addBtn){
+    addBtn.addEventListener('click', function(){
+      var id = addBtn.getAttribute('data-product-id');
+      var q = qty ? (parseInt(qty.value,10)||1) : 1;
+      addBtn.disabled = true;
+      addBtn.textContent = 'در حال افزودن...';
+      var body = new URLSearchParams();
+      body.append('product_id', id);
+      body.append('quantity', q);
+      fetch(<?php echo wp_json_encode(home_url('/?wc-ajax=add_to_cart')); ?>, {
+        method:'POST', credentials:'same-origin',
+        headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},
+        body: body.toString()
+      }).then(function(r){ return r.json(); })
+      .then(function(data){
+        addBtn.disabled = false;
+        addBtn.textContent = 'به سبد اضافه شد';
+        setTimeout(function(){ addBtn.textContent = 'افزودن به سبد خرید'; }, 1800);
+        if(window.jQuery){
+          jQuery(document.body).trigger('added_to_cart', [data.fragments, data.cart_hash]);
+          jQuery(document.body).trigger('wc_fragment_refresh');
+        }
+        document.body.dispatchEvent(new Event('added_to_cart'));
+        showToast(true, 'محصول به سبد خرید اضافه شد.');
+      }).catch(function(){
+        addBtn.disabled = false;
+        addBtn.textContent = 'افزودن به سبد خرید';
+        window.location.href = addBtn.getAttribute('data-url');
+      });
+    });
+  }
+
+  /* Tabs */
+  var navBtns = root.querySelectorAll('.ezp-tab-nav button');
+  var panels = root.querySelectorAll('.ezp-tab-panel');
+  function openTab(tab){
+    navBtns.forEach(function(b){ b.classList.toggle('is-on', b.getAttribute('data-tab')===tab); });
+    panels.forEach(function(p){ p.classList.toggle('is-on', p.id==='ezp-tab-'+tab); });
+  }
+  navBtns.forEach(function(btn){ btn.addEventListener('click', function(){ openTab(btn.getAttribute('data-tab')); }); });
+  root.querySelectorAll('.ezp-goto-reviews').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault(); openTab('reviews');
+      var t = root.querySelector('#ezpTabs');
+      if(t) t.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  /* Toast */
+  var toast = document.getElementById('ezpToast');
+  var toastBox = document.getElementById('ezpToastBox');
+  var toastMsg = document.getElementById('ezpToastMsg');
+  var toastIco = document.getElementById('ezpToastIco');
+  function showToast(ok, msg){
+    toastBox.className = 'ezp-toast ' + (ok ? 'ok' : 'err');
+    toastIco.innerHTML = ok
+      ? '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>'
+      : '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>';
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+  }
+  document.getElementById('ezpToastClose').addEventListener('click', function(){ toast.classList.remove('show'); });
+  toast.addEventListener('click', function(e){ if(e.target===toast) toast.classList.remove('show'); });
+
+  /* Review AJAX */
+  var form = document.getElementById('ezpReviewForm');
+  if(form){
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var btn = document.getElementById('ezpRevSubmit');
+      var ratingEl = form.querySelector('input[name="rating"]:checked');
+      if(!ratingEl){ showToast(false, 'لطفاً امتیاز خود را انتخاب کنید.'); return; }
+      var content = (form.querySelector('#ezpComment').value || '').trim();
+      if(content.length < 5){ showToast(false, 'متن نظر باید حداقل ۵ کاراکتر باشد.'); return; }
+
+      var fd = new FormData(form);
+      fd.append('action', 'ezp_submit_review');
+      fd.append('nonce', nonce);
+
+      btn.disabled = true;
+      btn.textContent = 'در حال ارسال...';
+
+      fetch(ajaxUrl, { method:'POST', credentials:'same-origin', body: fd })
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          btn.disabled = false;
+          btn.textContent = 'ارسال نظر';
+          if(res.success){
+            showToast(true, res.data.message || 'نظر شما ثبت شد.');
+            form.reset();
+          } else {
+            showToast(false, (res.data && res.data.message) ? res.data.message : 'خطا در ثبت نظر.');
+          }
+        })
+        .catch(function(){
+          btn.disabled = false;
+          btn.textContent = 'ارسال نظر';
+          showToast(false, 'ارتباط برقرار نشد. دوباره تلاش کنید.');
+        });
+    });
+  }
+})();
+</script>
+</div>
+    <?php
+    return ob_get_clean();
+});
